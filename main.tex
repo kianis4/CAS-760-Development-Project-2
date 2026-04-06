@@ -1,0 +1,82 @@
+\documentclass[11pt]{article}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[margin=1in]{geometry}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning}
+\usepackage[pdfusetitle]{hyperref}
+\hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue,
+            urlcolor=blue}
+
+% Alonzo macros (course-provided)
+\input{simple-type-theory-def.tex}
+\input{alonzo-notation.tex}
+
+% Macros for our theory names
+\newcommand{\BOOLTYPE}{\mName{BOOL\text{-}TYPE}}
+\newcommand{\OPTIONTYPE}{\mName{OPTION\text{-}TYPE}}
+\newcommand{\LISTTYPE}{\mName{LIST\text{-}TYPE}}
+\newcommand{\LISTDEV}{\mName{LIST\text{-}DEV}}
+\newcommand{\TREETYPE}{\mName{TREE\text{-}TYPE}}
+\newcommand{\TREEDEV}{\mName{TREE\text{-}DEV}}
+
+\newcommand{\nil}{\mName{nil}}
+\newcommand{\cons}{\mName{cons}}
+\newcommand{\some}{\mName{some}}
+\newcommand{\none}{\mName{none}}
+\newcommand{\leaf}{\mName{leaf}}
+\newcommand{\node}{\mName{node}}
+\newcommand{\true}{\mName{true}}
+\newcommand{\false}{\mName{false}}
+
+\title{CAS 760 --- Development 2 Project:\\
+       OCaml Core Types in Alonzo}
+\author{Suleyman Kiani \and Hamza}
+\date{April 16, 2026}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+\section{Boolean Type}
+
+\section{Option Type}
+
+\section{List Type}
+
+\section{List Development}
+
+\section{Binary Tree Type}
+
+\section{Tree Development}
+
+\section{Theory Morphism: PA to Lists}
+
+\section{Examples}
+
+\section{Conclusion}
+
+\appendix
+\section{Proofs}
+
+\begin{thebibliography}{9}
+
+\bibitem{farmer2025}
+  W.~M. Farmer,
+  \emph{Simple Type Theory: A Practical Logic for Expressing and
+  Reasoning About Mathematical Ideas},
+  2nd ed., Birkh{\"a}user, 2025.
+
+\bibitem{monoids2025}
+  W.~M. Farmer and D.~Y. Zvigelsky,
+  ``Monoid Theory in Alonzo: A Little Theories Formalization in
+  Simple Type Theory,''
+  \emph{Journal of Applied Logics}, vol.~12, no.~7, 2025.
+
+\end{thebibliography}
+
+\end{document}

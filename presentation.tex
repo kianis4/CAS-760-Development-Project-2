@@ -1,0 +1,91 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme{Madrid}
+\usecolortheme{default}
+
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning}
+
+\providecommand{\labelenumi}{}
+\providecommand{\labelenumii}{}
+
+\input{simple-type-theory-def.tex}
+\input{alonzo-notation.tex}
+
+\newcommand{\nil}{\mName{nil}}
+\newcommand{\cons}{\mName{cons}}
+\newcommand{\some}{\mName{some}}
+\newcommand{\none}{\mName{none}}
+\newcommand{\leaf}{\mName{leaf}}
+\newcommand{\node}{\mName{node}}
+\newcommand{\true}{\mName{true}}
+\newcommand{\false}{\mName{false}}
+
+\title{OCaml Core Types in Alonzo}
+\subtitle{CAS 760 --- Development 2 Project}
+\author{Suleyman Kiani \and Hamza}
+\institute{McMaster University}
+\date{April 16, 2026}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+\tableofcontents
+\end{frame}
+
+%% Presentation outline / guideline
+%%
+%% Planned structure (~15 min total):
+%%
+%% 1. Motivation (~2 min)
+%%    - Why OCaml types? Connection between PL types and inductive types
+%%    - Each OCaml algebraic data type maps to an inductive type (Ch 10)
+%%    - Gives nontrivial complexity: 4 theories + 2 developments + 1 morphism
+%%
+%% 2. Theory graph overview (~1 min)
+%%    - Show the full diagram, explain the module relationships
+%%
+%% 3. Walk through each module (~8 min)
+%%    - BOOL-TYPE: simplest case, enumeration type (Ex 10.5)
+%%    - OPTION-TYPE: sum type with one constructor carrying data
+%%    - LIST-TYPE: recursive type, parallels PA (nil<->0, cons<->S)
+%%    - LIST-DEV: derived ops (length, append, reverse), show one proof
+%%    - TREE-TYPE: binary recursive type (Ex 10.7)
+%%    - TREE-DEV: derived ops (size, height, mirror)
+%%
+%% 4. Theory morphism (~2 min)
+%%    - PA -> LIST-TYPE, explain the mapping and what Thm 14.16 gives us
+%%
+%% 5. Conclusion + Questions (~2 min)
+%%
+%% This covers the scope because:
+%% - Multiple theory defs (BOOL, OPTION, LIST, TREE)
+%% - Development defs with Defs + Thms (LIST-DEV, TREE-DEV)
+%% - A theory morphism (PA -> LIST)
+%% - Nontrivial complexity (7 modules total)
+%% - Follows the monoids paper structure
+%%
+%% Lessons from Project 1 to address in the talk:
+%% - Show that derived ops are in developments (not as ext constants)
+%% - Show Def validations in proofs
+%% - Emphasize correct use of TOTAL thms
+
+\section{Motivation}
+\section{Theory Graph}
+\section{Boolean Type}
+\section{Option Type}
+\section{List Type and Development}
+\section{Binary Tree Type and Development}
+\section{Theory Morphism}
+\section{Conclusion}
+
+\begin{frame}{Questions?}
+\centering
+\Large Thank you!
+\end{frame}
+
+\end{document}

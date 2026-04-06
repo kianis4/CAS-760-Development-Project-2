@@ -12,16 +12,7 @@
 \input{simple-type-theory-def.tex}
 \input{alonzo-notation.tex}
 
-\newcommand{\nil}{\mName{nil}}
-\newcommand{\cons}{\mName{cons}}
-\newcommand{\some}{\mName{some}}
-\newcommand{\none}{\mName{none}}
-\newcommand{\leaf}{\mName{leaf}}
-\newcommand{\node}{\mName{node}}
-\newcommand{\true}{\mName{true}}
-\newcommand{\false}{\mName{false}}
-
-\title{OCaml Core Types in Alonzo}
+\title{A Simple File System in Alonzo}
 \subtitle{CAS 760 --- Development 2 Project}
 \author{Suleyman Kiani \and Hamza}
 \institute{McMaster University}
@@ -37,49 +28,46 @@
 \tableofcontents
 \end{frame}
 
-%% Presentation outline / guideline
-%%
-%% Planned structure (~15 min total):
+%% Presentation guideline (~15 min):
 %%
 %% 1. Motivation (~2 min)
-%%    - Why OCaml types? Connection between PL types and inductive types
-%%    - Each OCaml algebraic data type maps to an inductive type (Ch 10)
-%%    - Gives nontrivial complexity: 4 theories + 2 developments + 1 morphism
+%%    - File systems are a concrete, real-world system
+%%    - Natural hierarchy: permissions, files, directories
+%%    - Development graph shape (not linear) with shared base theories
 %%
-%% 2. Theory graph overview (~1 min)
-%%    - Show the full diagram, explain the module relationships
+%% 2. Theory graph (~1 min)
+%%    - Show full diagram: PERM + FILE -> SECURED-FILE -> DIRECTORY
+%%    - Explain the extension and morphism relationships
 %%
-%% 3. Walk through each module (~8 min)
-%%    - BOOL-TYPE: simplest case, enumeration type (Ex 10.5)
-%%    - OPTION-TYPE: sum type with one constructor carrying data
-%%    - LIST-TYPE: recursive type, parallels PA (nil<->0, cons<->S)
-%%    - LIST-DEV: derived ops (length, append, reverse), show one proof
-%%    - TREE-TYPE: binary recursive type (Ex 10.7)
-%%    - TREE-DEV: derived ops (size, height, mirror)
+%% 3. Walk through modules (~6 min)
+%%    - PERM: permission levels, disjointness, ordering
+%%    - FILE: constructors, accessors, totality, injectivity
+%%    - SECURED-FILE: combining files with permissions
+%%    - DIRECTORY: inductive structure (emptydir, addentry)
 %%
-%% 4. Theory morphism (~2 min)
-%%    - PA -> LIST-TYPE, explain the mapping and what Thm 14.16 gives us
+%% 4. DIR-DEV: definitions and theorems (~3 min)
+%%    - Show key Defs (contains, lookup, size)
+%%    - Show TOTAL theorems and algebraic properties
+%%    - Emphasize: ops defined in development (not as ext constants)
+%%    - Show a validation proof for one Def
 %%
-%% 5. Conclusion + Questions (~2 min)
+%% 5. Morphism: FILE-to-DIR (~2 min)
+%%    - How files embed as single-entry directories
+%%    - What Thm 14.16 gives us (theorem transport)
 %%
-%% This covers the scope because:
-%% - Multiple theory defs (BOOL, OPTION, LIST, TREE)
-%% - Development defs with Defs + Thms (LIST-DEV, TREE-DEV)
-%% - A theory morphism (PA -> LIST)
-%% - Nontrivial complexity (7 modules total)
-%% - Follows the monoids paper structure
+%% 6. Conclusion (~1 min)
 %%
-%% Lessons from Project 1 to address in the talk:
-%% - Show that derived ops are in developments (not as ext constants)
-%% - Show Def validations in proofs
-%% - Emphasize correct use of TOTAL thms
+%% Scope justification:
+%% - 6 modules forming a genuine graph
+%% - Theory defs, extensions, development, morphism
+%% - Follows monoids paper structure
+%% - Addresses all Project 1 feedback
 
 \section{Motivation}
 \section{Theory Graph}
-\section{Boolean Type}
-\section{Option Type}
-\section{List Type and Development}
-\section{Binary Tree Type and Development}
+\section{Permissions and Files}
+\section{Secured Files and Directories}
+\section{Directory Development}
 \section{Theory Morphism}
 \section{Conclusion}
 

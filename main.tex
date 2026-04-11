@@ -20,9 +20,16 @@
 \newcommand{\DIR}{\mName{DIRECTORY}}
 \newcommand{\DIRDEV}{\mName{DIR\text{-}DEV}}
 
+% Constructor/operation name macros
+\newcommand{\mkfile}{\mName{mkfile}}
+\newcommand{\fname}{\mName{fname}}
+\newcommand{\fcontent}{\mName{fcontent}}
+\newcommand{\perm}{\mName{perm}}
+\newcommand{\prot}{\mName{protect}}
+
 \title{CAS 760 --- Development 2 Project:\\
        A Simple File System in Alonzo}
-\author{Suleyman Kiani \and Hamza}
+\author{Suleyman Kiani \and Hamza Jamil}
 \date{April 16, 2026}
 
 \begin{document}
@@ -30,26 +37,265 @@
 \tableofcontents
 \newpage
 
+% ============================================================
 \section{Introduction}
+\label{sec:intro}
+% ============================================================
 
+This paper formalizes a simple file system as a development graph
+in Alonzo, following the little theories method~\cite{farmer2025}.
+File systems are a fundamental concept in computing: they organize
+data into named, content-bearing objects (files), assign permissions
+to control access, and group files into hierarchical directories.
+Each of these concepts corresponds naturally to a theory in the
+little theories framework.
+
+We build a hierarchy of increasingly complex structures.  The base
+theories $\PERM$ and $\FILETYPE$ capture permissions and basic files
+independently.  The theory extension $\SECFILE$ combines both,
+associating a permission level with each file.  A further extension
+$\DIR$ introduces directories as inductive structures over secured
+files.  Key operations (lookup, containment, directory size) are
+developed in $\DIRDEV$, and a theory morphism shows that single files
+embed into the directory structure.
+
+The development follows the module format established in the textbook
+and the monoids paper of Farmer \& Zvigelsky~\cite{monoids2025}.
+We use compact notation throughout, dropping type subscripts where
+unambiguous, consistent with Notational Convention~5
+of~\cite{farmer2025}.
+
+\medskip
+\noindent\textbf{Theory graph.}
+
+\begin{center}
+\begin{tikzpicture}[
+  theory/.style={draw, rounded corners, minimum width=2.2cm,
+                 minimum height=0.7cm, font=\small\ttfamily},
+  dev/.style={draw, dashed, rounded corners, minimum width=2.2cm,
+              minimum height=0.7cm, font=\small\ttfamily},
+  arr/.style={-{Stealth[length=6pt]}, thick},
+  morph/.style={-{Stealth[length=6pt]}, thick, dashed},
+  node distance=1.4cm
+]
+  \node[theory] (perm)  {PERM};
+  \node[theory, right=3cm of perm] (file) {FILE};
+  \node[theory, below right=1.4cm and 0.5cm of perm] (secfile) {SECURED-FILE};
+  \node[theory, below=of secfile] (dir) {DIRECTORY};
+  \node[dev, below left=1cm and 0cm of dir] (dirdev) {DIR-DEV};
+
+  \draw[arr] (perm) -- (secfile);
+  \draw[arr] (file) -- (secfile);
+  \draw[arr] (secfile) -- (dir);
+  \draw[arr] (dir) -- (dirdev);
+  \draw[morph] (file) to[bend right=30]
+    node[right, font=\scriptsize] {morphism} (dir);
+\end{tikzpicture}
+\end{center}
+
+Solid boxes are theories (theory definitions or extensions).  The
+dashed box is a development definition.  Solid arrows denote theory
+extensions.  The dashed arrow denotes the theory morphism
+$\mName{FILE\text{-}to\text{-}DIR}$.
+
+\medskip
+\noindent\textbf{Work division.}
+\begin{itemize}
+  \item \textbf{Suleyman Kiani}: $\FILETYPE$, $\SECFILE$, $\DIR$,
+    $\DIRDEV$ (Sections~\ref{sec:files}--\ref{sec:dir-dev}),
+    including all proofs and validations.
+  \item \textbf{Hamza Jamil}: $\PERM$, theory morphism
+    $\mName{FILE\text{-}to\text{-}DIR}$
+    (Sections~\ref{sec:perm} and~\ref{sec:morphism}),
+    examples, and presentation lead.
+\end{itemize}
+
+% ============================================================
+\newpage
 \section{Permissions}
+\label{sec:perm}
+% ============================================================
 
+% [Hamza's section]
+
+% ============================================================
+\newpage
 \section{Files}
+\label{sec:files}
+% ============================================================
 
+A \emph{file} is a named container for content.  In a real file
+system, a file has (at minimum) a name and content.  We model
+this as a theory with a constructor $\mkfile$ that builds a file
+from a name and content, and accessor functions $\fname$ and
+$\fcontent$ that extract the components.
+
+This theory defines the space of all possible files over arbitrary
+name and content types.  It is analogous to a simple record type
+$\texttt{type file = \{name : N; content : C\}}$ in OCaml.
+
+\begin{theory-def}
+{Files}
+{$\FILETYPE$.}
+{$N$, $C$, $F$.}
+{$\mkfile_{\cFunTyBX{N}{C}{F}}$,\;
+ $\fname_{\cFunTyX{F}{N}}$,\;
+ $\fcontent_{\cFunTyX{F}{C}}$.}
+{
+\be
+\item $\cTotalB{\mkfile}$
+      \hfill ($\mkfile$ is total).
+
+\item $\cInjB{\mkfile}$
+      \hfill ($\mkfile$ is injective).
+
+\item $\cForallBX{n}{N}{c}{C}{
+      \cEqX{\fname\;(\mkfile\;n\;c)}{n}}$
+      \hfill (name accessor).
+
+\item $\cForallBX{n}{N}{c}{C}{
+      \cEqX{\fcontent\;(\mkfile\;n\;c)}{c}}$
+      \hfill (content accessor).
+
+\item $\cTotal{\fname}$
+      \hfill ($\fname$ is total).
+
+\item $\cTotal{\fcontent}$
+      \hfill ($\fcontent$ is total).
+
+\item $\cForallX{f}{F}{\cEqX{\mkfile\;(\fname\;f)\;(\fcontent\;f)}{f}}$
+      \hfill (surjectivity of $\mkfile$).
+\ee
+}
+\end{theory-def}
+
+\medskip
+\noindent\textbf{Explanation of the axioms.}
+Axiom~1 states that any name--content pair produces a valid file.
+Axiom~2 ensures distinct pairs produce distinct files (``no
+confusion'').  Axioms~3--4 define the accessor functions via their
+interaction with the constructor.  Axioms~5--6 ensure the accessors
+are total on all files.  Axiom~7 establishes that every file is
+constructible --- i.e., $\mkfile$ is surjective, so the type $F$ is
+exactly the set of name--content pairs.  Together, Axioms~1--2 and~7
+make $F$ isomorphic to $N \times C$.
+
+\medskip
+\noindent\textbf{Design note.}
+We could alternatively model files using the product type
+$N \times C$ with the built-in projection functions $\mName{fst}$
+and $\mName{snd}$.  We choose an abstract type $F$ with explicit
+accessors to allow extension with additional attributes (e.g.,
+permissions) via theory extensions, which is more natural in the
+little theories setting.
+
+% ============================================================
+\newpage
 \section{Secured Files}
+\label{sec:secfiles}
+% ============================================================
 
+A \emph{secured file} is a file that has been assigned a permission
+level.  We model this as a theory extension of $\FILETYPE$ that adds
+a permission-assignment function.  The permission type $P$ (with its
+ordering structure) is defined in $\PERM$; here we use $P$ as a base
+type whose properties will be inherited when $\SECFILE$ is connected
+to $\PERM$ in the full development graph.
+
+\begin{theory-ext}
+{Secured Files}
+{$\SECFILE$.}
+{$\FILETYPE$.}
+{$P$.}
+{$\perm_{\cFunTyX{F}{P}}$,\;
+ $\prot_{\cFunTyBX{F}{P}{F}}$.}
+{
+\be \setcounter{enumi}{7}
+\item $\cTotal{\perm}$
+      \hfill ($\perm$ is total).
+
+\item $\cTotalB{\prot}$
+      \hfill ($\prot$ is total).
+
+\item $\cForallBX{f}{F}{p}{P}{
+      \cEqX{\perm\;(\prot\;f\;p)}{p}}$
+      \hfill (protect sets permission).
+
+\item $\cForallBX{f}{F}{p}{P}{
+      \cEqX{\fname\;(\prot\;f\;p)}{\fname\;f}}$
+      \hfill (protect preserves name).
+
+\item $\cForallBX{f}{F}{p}{P}{
+      \cEqX{\fcontent\;(\prot\;f\;p)}{\fcontent\;f}}$
+      \hfill (protect preserves content).
+\ee
+}
+\end{theory-ext}
+
+\medskip
+\noindent\textbf{Explanation of the axioms.}
+Axiom~8 states that every file has an assigned permission.
+Axiom~9 ensures that applying a permission always succeeds.
+Axiom~10 defines the core semantics of $\prot$: after applying
+$\prot\;f\;p$, the permission of the resulting file is $p$.
+Axioms~11--12 guarantee that $\prot$ only changes the permission
+--- it does not alter the file's name or content.
+
+$\SECFILE$ extends $\FILETYPE$ by adding one new base type $P$
+(permission levels), and two new constants.  The axiom numbering
+continues from $\FILETYPE$ (Axioms 1--7), consistent with the
+convention for theory extensions (Definition~9.12
+of~\cite{farmer2025}).  The language of $\SECFILE$ is the language
+of $\FILETYPE$ augmented with the new type $P$ and constants
+$\perm$, $\prot$.
+
+% ============================================================
+\newpage
 \section{Directories}
+\label{sec:dir}
+% ============================================================
 
+% [To be completed next]
+
+% ============================================================
+\newpage
 \section{Directory Development}
+\label{sec:dir-dev}
+% ============================================================
 
+% [To be completed next]
+
+% ============================================================
+\newpage
 \section{Theory Morphism: Files to Directories}
+\label{sec:morphism}
+% ============================================================
 
+% [Hamza's section]
+
+% ============================================================
+\newpage
 \section{Examples}
+\label{sec:examples}
+% ============================================================
 
+% [Hamza's section]
+
+% ============================================================
 \section{Conclusion}
+\label{sec:conclusion}
+% ============================================================
 
+% [To be completed after all modules are done]
+
+% ============================================================
 \appendix
-\section{Proofs}
+\newpage
+\section{Proofs and Validations}
+\label{app:proofs}
+% ============================================================
+
+% [Proofs to be added with DIR-DEV]
 
 \begin{thebibliography}{9}
 

@@ -255,7 +255,104 @@ $\perm$, $\prot$.
 \label{sec:dir}
 % ============================================================
 
-% [To be completed next]
+A \emph{directory} is a collection of secured files organized as a
+flat structure.  We model this as an inductive type: a directory is
+either empty or formed by adding a secured file to an existing
+directory.  This mirrors the standard inductive structure of lists
+(cf.\ the parallel between PA and lists in Theory
+Definition~9.7 of~\cite{farmer2025}).
+
+We add two new constructors: $\mName{emptydir}$ (the empty
+directory, analogous to $\mName{nil}$ in lists) and $\mName{addfile}$ (add
+a file to a directory, analogous to $\mName{cons}$).
+
+\begin{theory-ext}
+{Directories}
+{$\DIR$.}
+{$\SECFILE$.}
+{$D$.}
+{$\mName{emptydir}_D$,\;
+ $\mName{addfile}_{\cFunTyBX{F}{D}{D}}$.}
+{
+\be \setcounter{enumi}{12}
+\item $\cTotalB{\mName{addfile}}$
+      \hfill ($\mName{addfile}$ is total).
+
+\item $\cInjB{\mName{addfile}}$
+      \hfill ($\mName{addfile}$ is injective).
+
+\item $\cForallBX{f}{F}{d}{D}{
+      \cNotEqX{\mName{addfile}\;f\;d}{\mName{emptydir}}}$
+      \hfill (disjointness).
+
+\item $\cForallX{p}{\cSetTy{D}}{
+      \cImpliesX{p\;\mName{emptydir} \;\wedge\;
+        \cForallBX{f}{F}{d}{D}{
+          \cImpliesX{p\;d}{p\;(\mName{addfile}\;f\;d)}}}{
+        \cForallX{d}{D}{p\;d}}}$
+      \hfill (structural induction).
+\ee
+}
+\end{theory-ext}
+
+\medskip
+\noindent\textbf{Inductive type verification.}
+The constructors for $D$ are
+$C = \{\mName{emptydir}_D,\;
+  (\mName{addfile}_{\cFunTyBX{F}{D}{D}},\; U_{\cSetTy{F}})\}$.
+Here $\mName{emptydir}$ is a nullary constructor (first kind) and
+$(\mName{addfile}, U_{\cSetTy{F}})$ is a fourth-kind constructor:
+its type is $F \to D \to D$ (in Curryed form), the quasitype
+$U_{\cSetTy{F}}$ indicates the first argument ranges over all
+of~$F$, and the presence of $D$ in the domain makes
+$\mName{addfile}$ recursive.
+
+Checking the obligations (Definition~10.9 of~\cite{farmer2025}):
+\begin{enumerate}[label=(\alph*)]
+  \item $U_{\cSetTy{F}} \ne \emptyset_{\cSetTy{F}}$: holds since
+    $F$ is a base type (all base type domains are nonempty by
+    Definition~4.1 of~\cite{farmer2025}).
+  \item $\mName{addfile}\!\downarrow$ as a total function:
+    $\cTotalB{\mName{addfile}}$ (Axiom~13).
+  \item TOTAL-ON for $\mName{addfile}$: follows from Axiom~13.
+  \item $\cInjB{\mName{addfile}}$: Axiom~14.  This ensures
+    distinct file--directory pairs produce distinct directories.
+  \item $\mName{emptydir} \notin \mName{ran}(\mName{addfile})$:
+    follows from Axiom~15 (disjointness).
+  \item Disjoint ranges: trivially satisfied (only one nonnullary
+    constructor).
+  \item Structural induction: Axiom~16.
+\end{enumerate}
+
+Hence $(D, C)$ is a recursive inductive type in $\DIR$.  By
+the Inductive Types Theorem (Theorem~10.10 of~\cite{farmer2025}),
+in every standard model $M$ of $\DIR$, $D_D^M$ consists of exactly
+$I^M(\mName{emptydir})$ and all values of the form
+$I^M(\mName{addfile})(d_f, \sigma)$ for $d_f \in D_F^M$ and
+$\sigma \in D_D^M$.  That is, $D_D^M$ is isomorphic to the set of
+finite multisets (or sequences, given injectivity) over $D_F^M$.
+
+\medskip
+\noindent\textbf{Comparison with LIST-TYPE.}
+The following table shows the structural parallel between
+$\DIR$ and a list type:
+
+\medskip
+\begin{center}
+\begin{tabular}{lll}
+  \textbf{LIST} & \textbf{DIRECTORY} & \textbf{Role} \\
+  \hline
+  $L$ & $D$ & inductive type \\
+  $E$ (element) & $F$ (file) & element type \\
+  $\mName{nil}_L$ & $\mName{emptydir}_D$ & nullary constructor \\
+  $\mName{cons}_{E \to L \to L}$ & $\mName{addfile}_{F \to D \to D}$ &
+    recursive constructor \\
+  TOTAL2($\mName{cons}$) & TOTAL2($\mName{addfile}$) & totality \\
+  $\mName{cons}\;e\;l \ne \mName{nil}$ & $\mName{addfile}\;f\;d \ne \mName{emptydir}$
+    & disjointness \\
+  INJ2($\mName{cons}$) & INJ2($\mName{addfile}$) & injectivity \\
+\end{tabular}
+\end{center}
 
 % ============================================================
 \newpage
@@ -263,7 +360,88 @@ $\perm$, $\prot$.
 \label{sec:dir-dev}
 % ============================================================
 
-% [To be completed next]
+We now define derived operations on directories and prove key
+properties.  Following the lesson from Development Project~1
+(see Section~\ref{sec:conclusion}), all operations are
+\emph{defined} in this development using definite descriptions,
+not introduced as theory extension constants.
+
+\begin{dev-def}
+{Directory Development}
+{$\DIRDEV$.}
+{$\DIR$.}
+{
+
+\medskip
+\noindent\textbf{Def\,1} ($\mName{contains}$). \quad
+$\mName{contains}_{\cFunTyBX{N}{D}{\cB}} \;=\;
+\cDefDesX{g}{N \to D \to \cB}{
+  \cForallX{n}{N}{\cEqX{g\;n\;\mName{emptydir}}{\cF}} \;\wedge\;
+  \cForallCX{n}{N}{f}{F}{d}{D}{
+    \cEqX{g\;n\;(\mName{addfile}\;f\;d)}{
+      (\cEqX{\fname\;f}{n}) \vee g\;n\;d}}}$
+
+\medskip
+\noindent\textit{Remark.}
+The predicate $\mName{contains}\;n\;d$ tests whether a file with
+name $n$ exists in directory $d$.  It is defined by structural
+recursion on~$d$: the empty directory contains nothing, and
+$\mName{addfile}\;f\;d$ contains name $n$ if either $f$ has
+name $n$ or $d$ already contains $n$.
+
+\medskip
+\noindent\textbf{Thm\,1.} \quad $\cTotalB{\mName{contains}}$
+\hfill ($\mName{contains}$ is total).
+
+\medskip
+\noindent\textbf{Thm\,2.} \quad
+$\cForallX{n}{N}{\cEqX{\mName{contains}\;n\;\mName{emptydir}}{\cF}}$
+\hfill (empty directory contains nothing).
+
+\medskip
+\noindent\textbf{Def\,2} ($\mName{size}$). \quad
+$\mName{size}_{\cFunTyX{D}{\mathbb{N}}} \;=\;
+\cDefDesX{g}{D \to \mathbb{N}}{
+  \cEqX{g\;\mName{emptydir}}{0} \;\wedge\;
+  \cForallBX{f}{F}{d}{D}{
+    \cEqX{g\;(\mName{addfile}\;f\;d)}{g\;d + 1}}}$
+
+\medskip
+\noindent\textit{Remark.}
+The function $\mName{size}\;d$ returns the number of file entries
+in directory~$d$.
+
+\medskip
+\noindent\textbf{Thm\,3.} \quad $\cTotal{\mName{size}}$
+\hfill ($\mName{size}$ is total).
+
+\medskip
+\noindent\textbf{Thm\,4.} \quad
+$\cEqX{\mName{size}\;\mName{emptydir}}{0}$
+\hfill (empty directory has size zero).
+
+\medskip
+\noindent\textbf{Thm\,5.} \quad
+$\cForallBX{f}{F}{d}{D}{
+  \cEqX{\mName{size}\;(\mName{addfile}\;f\;d)}{\mName{size}\;d + 1}}$
+\hfill (addfile increments size).
+
+\medskip
+\noindent\textbf{Thm\,6.} \quad
+$\cForallX{d}{D}{\mName{size}\;d \ge 0}$
+\hfill (size is non-negative).
+
+}
+\end{dev-def}
+
+\medskip
+Definitions are validated and theorems are proved in
+Appendix~\ref{app:proofs}.  Note that $\mName{contains}$ and
+$\mName{size}$ are defined using definite descriptions
+($\mathrm{I}$-terms): each definition asserts the existence of a
+unique function satisfying the given recursion equations.  The
+validations prove that these definite descriptions are defined
+(i.e., the $\mathrm{I}$-terms denote values).
 
 % ============================================================
 \newpage
@@ -291,11 +469,139 @@ $\perm$, $\prot$.
 % ============================================================
 \appendix
 \newpage
-\section{Proofs and Validations}
+\section{Proofs and Validations for DIR-DEV}
 \label{app:proofs}
 % ============================================================
 
-% [Proofs to be added with DIR-DEV]
+\subsection{Validation of Def\,1 ($\mName{contains}$)}
+
+We must show that the definite description
+$\cDefDesX{g}{N \to D \to \cB}{\ldots}$
+denotes a value, i.e., there exists a unique function
+$g : N \to D \to \cB$ satisfying:
+\begin{align}
+  \cForallX{n}{N}{\cEqX{g\;n\;\mName{emptydir}}{\cF}} \tag{R1} \\
+  \cForallCX{n}{N}{f}{F}{d}{D}{
+    \cEqX{g\;n\;(\mName{addfile}\;f\;d)}{
+      (\cEqX{\fname\;f}{n}) \vee g\;n\;d}}
+    \tag{R2}
+\end{align}
+
+\textbf{Existence.}
+Define $g$ by: for fixed $n : N$, define $g\;n$ by structural
+recursion on the second argument $d : D$.
+By the structural induction principle (Axiom~16 of $\DIR$),
+every $d : D$ is either $\mName{emptydir}$ or
+$\mName{addfile}\;f\;d'$ for unique $f : F$ and $d' : D$.  Define:
+\[
+  g\;n\;d \;=\;
+  \begin{cases}
+    \cF & \text{if } d = \mName{emptydir}, \\
+    (\cEqX{\fname\;f}{n}) \vee g\;n\;d'
+      & \text{if } d = \mName{addfile}\;f\;d'.
+  \end{cases}
+\]
+This is well-defined by structural recursion (each recursive call
+is on a structurally smaller second argument).  The expression
+$(\cEqX{\fname\;f}{n}) \vee g\;n\;d'$ is defined since $\fname$ is
+total (Axiom~5 of $\FILETYPE$), equality is always defined, and
+$\vee$ is total.  Hence $g$ satisfies (R1) and (R2).
+
+\textbf{Uniqueness.}
+If $g$ and $h$ both satisfy (R1) and (R2), then for any fixed
+$n : N$, by structural induction on $d$:
+\begin{itemize}
+  \item \textbf{Base:}
+    $g\;n\;\mName{emptydir} = \cF = h\;n\;\mName{emptydir}$.
+  \item \textbf{Step:} If $g\;n\;d = h\;n\;d$, then
+    $g\;n\;(\mName{addfile}\;f\;d)
+    = (\cEqX{\fname\;f}{n}) \vee g\;n\;d
+    = (\cEqX{\fname\;f}{n}) \vee h\;n\;d
+    = h\;n\;(\mName{addfile}\;f\;d)$.
+\end{itemize}
+Hence $g = h$. \qed
+
+\subsection{Thm\,1: $\cTotalB{\mName{contains}}$}
+
+\textbf{Proof.}
+We show $\mName{contains}\;n\;d\!\downarrow$ for all $n : N$,
+$d : D$ by structural induction on $d$.
+
+\textbf{Base case:}
+$\mName{contains}\;n\;\mName{emptydir} = \cF\!\downarrow$.
+
+\textbf{Inductive step:} Assume
+$\mName{contains}\;n\;d\!\downarrow$.  Then
+$\mName{contains}\;n\;(\mName{addfile}\;f\;d)
+= (\cEqX{\fname\;f}{n}) \vee \mName{contains}\;n\;d$.
+Since $\fname\;f\!\downarrow$ (Axiom~5), equality is defined,
+$\mName{contains}\;n\;d\!\downarrow$ (IH), and $\vee$ is total,
+the result is defined.
+
+By structural induction (Axiom~16), $\cTotalB{\mName{contains}}$.
+\qed
+
+\subsection{Thm\,2:
+  $\cForallX{n}{N}{\cEqX{\mName{contains}\;n\;\mName{emptydir}}{\cF}}$}
+
+Immediate from the definition of $\mName{contains}$ (equation R1).
+\qed
+
+\subsection{Validation of Def\,2 ($\mName{size}$)}
+
+We must show that $\cDefDesX{g}{D \to \mathbb{N}}{\ldots}$ denotes
+a value.
+
+\textbf{Existence.}
+Define $g$ by structural recursion on $d$:
+$g\;\mName{emptydir} = 0$ and
+$g\;(\mName{addfile}\;f\;d) = g\;d + 1$.
+This is well-defined since the recursive call is on the
+structurally smaller argument $d$, and $+ 1$ is total on
+$\mathbb{N}$.
+
+\textbf{Uniqueness.}
+By structural induction: if $g$ and $h$ both satisfy the
+recursion, then $g\;\mName{emptydir} = 0 = h\;\mName{emptydir}$,
+and if $g\;d = h\;d$ then
+$g\;(\mName{addfile}\;f\;d) = g\;d + 1 = h\;d + 1
+= h\;(\mName{addfile}\;f\;d)$.
+Hence $g = h$. \qed
+
+\subsection{Thm\,3: $\cTotal{\mName{size}}$}
+
+\textbf{Proof.}
+By structural induction on $d$.
+
+\textbf{Base:} $\mName{size}\;\mName{emptydir} = 0\!\downarrow$.
+
+\textbf{Step:} Assume $\mName{size}\;d\!\downarrow$.  Then
+$\mName{size}\;(\mName{addfile}\;f\;d) = \mName{size}\;d + 1$.
+Since $\mName{size}\;d\!\downarrow$ (IH) and $+ 1$ is total on
+$\mathbb{N}$, the result is defined. \qed
+
+\subsection{Thm\,4:
+  $\cEqX{\mName{size}\;\mName{emptydir}}{0}$}
+
+Immediate from the definition of $\mName{size}$. \qed
+
+\subsection{Thm\,5:
+  $\cForallBX{f}{F}{d}{D}{
+    \cEqX{\mName{size}\;(\mName{addfile}\;f\;d)}{\mName{size}\;d + 1}}$}
+
+Immediate from the definition of $\mName{size}$. \qed
+
+\subsection{Thm\,6:
+  $\cForallX{d}{D}{\mName{size}\;d \ge 0}$}
+
+\textbf{Proof.}
+By structural induction on $d$.
+
+\textbf{Base:} $\mName{size}\;\mName{emptydir} = 0 \ge 0$.
+
+\textbf{Step:} Assume $\mName{size}\;d \ge 0$.  Then
+$\mName{size}\;(\mName{addfile}\;f\;d) = \mName{size}\;d + 1
+\ge 0 + 1 = 1 \ge 0$. \qed
 
 \begin{thebibliography}{9}
 

@@ -244,7 +244,7 @@ Axioms~11--12 guarantee that $\prot$ only changes the permission
 $\SECFILE$ extends $\FILETYPE$ by adding one new base type $P$
 (permission levels), and two new constants.  The axiom numbering
 continues from $\FILETYPE$ (Axioms 1--7), consistent with the
-convention for theory extensions (Definition~9.12
+convention for theory extensions (Section~9.2
 of~\cite{farmer2025}).  The language of $\SECFILE$ is the language
 of $\FILETYPE$ augmented with the new type $P$ and constants
 $\perm$, $\prot$.
@@ -307,11 +307,12 @@ $U_{\cSetTy{F}}$ indicates the first argument ranges over all
 of~$F$, and the presence of $D$ in the domain makes
 $\mName{addfile}$ recursive.
 
-Checking the obligations (Definition~10.9 of~\cite{farmer2025}):
+Checking the obligations (Chapter~10, Section~10.2
+of~\cite{farmer2025}):
 \begin{enumerate}[label=(\alph*)]
   \item $U_{\cSetTy{F}} \ne \emptyset_{\cSetTy{F}}$: holds since
-    $F$ is a base type (all base type domains are nonempty by
-    Definition~4.1 of~\cite{farmer2025}).
+    $F$ is a base type and every base type domain is nonempty
+    (frame condition F2, Definition~5.1 of~\cite{farmer2025}).
   \item $\mName{addfile}\!\downarrow$ as a total function:
     $\cTotalB{\mName{addfile}}$ (Axiom~13).
   \item TOTAL-ON for $\mName{addfile}$: follows from Axiom~13.
@@ -325,7 +326,7 @@ Checking the obligations (Definition~10.9 of~\cite{farmer2025}):
 \end{enumerate}
 
 Hence $(D, C)$ is a recursive inductive type in $\DIR$.  By
-the Inductive Types Theorem (Theorem~10.10 of~\cite{farmer2025}),
+the Inductive Types Theorem (Chapter~10 of~\cite{farmer2025}),
 in every standard model $M$ of $\DIR$, $D_D^M$ consists of exactly
 $I^M(\mName{emptydir})$ and all values of the form
 $I^M(\mName{addfile})(d_f, \sigma)$ for $d_f \in D_F^M$ and

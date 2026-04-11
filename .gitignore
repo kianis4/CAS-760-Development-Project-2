@@ -12,8 +12,10 @@
 *.snm
 *.vrb
 
-# Compiled output (rebuild locally)
-*.pdf
+# Compiled output (keep main deliverables)
+# *.pdf
+!main.pdf
+!presentation.pdf
 
 # OS files
 .DS_Store

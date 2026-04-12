@@ -1,0 +1,37 @@
+name: Build LaTeX Documents
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Compile main.tex
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+
+      - name: Upload main.pdf
+        uses: actions/upload-artifact@v4
+        with:
+          name: main-pdf
+          path: main.pdf
+
+      - name: Compile presentation.tex
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: presentation.tex
+
+      - name: Upload presentation.pdf
+        uses: actions/upload-artifact@v4
+        with:
+          name: presentation-pdf
+          path: presentation.pdf

@@ -46,9 +46,9 @@ This paper formalizes a simple file system as a development graph
 in Alonzo, following the little theories method~\cite{farmer2025}.
 File systems are a fundamental concept in computing: they organize
 data into named, content-bearing objects (files), assign permissions
-to control access, and group files into hierarchical directories. {\color{red} is it hierarchical or flat?}
-Each of these concepts corresponds naturally to a theory in the
-little theories framework.
+to control access, and group files into directories.  Each of these
+concepts corresponds naturally to a theory in the little theories
+framework.
 
 We build a hierarchy of increasingly complex structures.  The base
 theories $\PERM$ and $\FILETYPE$ capture permissions and basic files
@@ -155,10 +155,12 @@ distinct (using the $\mName{DISTINCT}$ abbreviation from
 Table~6.2 of~\cite{farmer2025}).  Axiom~2 is the structural
 induction principle: any predicate that holds for all four
 constructors holds for every element of $P$.  Together, these
-axioms make $(P, C)$ {\color{red} I think we need to change C to something else, as C is a base type in Files} an enumeration inductive type where
-$C = \{\mName{noaccess},\; \mName{rd},\; \mName{wr},\;
+axioms make $(P, \mathcal{C})$ an enumeration inductive type where
+$\mathcal{C} = \{\mName{noaccess},\; \mName{rd},\; \mName{wr},\;
 \mName{admin}\}$, so in every standard model, $P$ has exactly
-four elements.
+four elements.  (We use the calligraphic $\mathcal{C}$ for the set
+of constructors to avoid clashing with the base type $C$ of
+$\FILETYPE$.)
 
 % ============================================================
 \newpage
@@ -238,19 +240,26 @@ little theories setting.
 % ============================================================
 
 A \emph{secured file} is a file that has been assigned a permission
-level.  We model this as a theory extension of $\FILETYPE$ that adds
-a permission-assignment function.  The permission type $P$ (with its
-ordering structure) is defined in $\PERM$; here we use $P$ as a base
-type whose properties will be inherited when $\SECFILE$ is connected
-to $\PERM$ in the full development graph.
-
-{\color{red} First, in SECURED-FILE, the current formal setup seems slightly off. Right now it is written as an extension of FILE that introduces a fresh base type P. Conceptually, though, SECURED-FILE is supposed to combine FILE and PERM. So the graph intuition says “FILE + PERM = SECURED-FILE,” but the module itself does not yet encode that properly. I think we should make the dependence on PERM more explicit/formal if possible.}
+level.  Conceptually, $\SECFILE$ combines $\FILETYPE$ and $\PERM$:
+it associates a permission from $\PERM$ with each file from
+$\FILETYPE$.  We present $\SECFILE$ as a joint extension of both
+parent theories, so that the base type $P$ is inherited from
+$\PERM$ (not reintroduced), and the base types $N$, $C$, $F$ and
+the constants $\mkfile$, $\fname$, $\fcontent$ are inherited from
+$\FILETYPE$.  This is the standard pushout-style construction for
+combining two theories that share no non-trivial sub-theory,
+following the little theories method of~\cite{farmer2025}: the
+two extension arrows $\FILETYPE \to \SECFILE$ and $\PERM \to
+\SECFILE$ in the theory graph of Section~\ref{sec:intro} encode
+the import of each parent's language into $\SECFILE$.  $\SECFILE$
+then introduces only the new constants $\perm$ and $\prot$,
+together with axioms relating them to the inherited constants.
 
 \begin{theory-ext}
 {Secured Files}
 {$\SECFILE$.}
-{$\FILETYPE$.}
-{$P$.}
+{$\FILETYPE$ and $\PERM$.}
+{None ($P$ is inherited from $\PERM$).}
 {$\perm_{\cFunTyX{F}{P}}$,\;
  $\prot_{\cFunTyBX{F}{P}{F}}$.}
 {
@@ -285,13 +294,14 @@ $\prot\;f\;p$, the permission of the resulting file is $p$.
 Axioms~11--12 guarantee that $\prot$ only changes the permission
 --- it does not alter the file's name or content.
 
-$\SECFILE$ extends $\FILETYPE$ by adding one new base type $P$
-(permission levels), and two new constants.  The axiom numbering
+$\SECFILE$ inherits the types and constants of both $\FILETYPE$
+and $\PERM$ (including the base type $P$ of permission levels) and
+adds two new constants, $\perm$ and $\prot$.  The axiom numbering
 continues from $\FILETYPE$ (Axioms 1--7), consistent with the
 convention for theory extensions (Section~9.2
-of~\cite{farmer2025}).  The language of $\SECFILE$ is the language
-of $\FILETYPE$ augmented with the new type $P$ and constants
-$\perm$, $\prot$.
+of~\cite{farmer2025}).  The language of $\SECFILE$ is the union of
+the languages of $\FILETYPE$ and $\PERM$, augmented with the
+constants $\perm$ and $\prot$.
 
 % ============================================================
 \newpage
@@ -309,6 +319,23 @@ Definition~9.7 of~\cite{farmer2025}).
 We add two new constructors: $\mName{emptydir}$ (the empty
 directory, analogous to $\mName{nil}$ in lists) and $\mName{addfile}$ (add
 a file to a directory, analogous to $\mName{cons}$).
+
+\medskip
+\noindent\textbf{Design note on flat structure.}
+The constructor $\mName{addfile}$ has type
+$\cFunTyBX{F}{D}{D}$: it takes a \emph{file} (not a directory) as
+its first argument.  This makes $\DIR$ a flat container of
+$\SECFILE$ entries, mirroring the LIST pattern in the textbook.
+A hierarchical model would require a constructor
+$\mName{adddir} : \cFunTyBX{D}{D}{D}$ allowing directories to
+contain directories, yielding a tree-shaped inductive type.  The
+flat choice is intentional: it keeps the inductive type within the
+standard fourth-kind constructor pattern of Chapter~10
+of~\cite{farmer2025}, preserves the direct analogy with lists, and
+permits the clean $\mName{FILE\text{-}to\text{-}DIR}$ morphism in
+Section~\ref{sec:morphism}, which relies on unique extraction from
+single-entry directories.  A hierarchical extension is a natural
+direction for future work.
 
 \begin{theory-ext}
 {Directories}
@@ -341,9 +368,11 @@ a file to a directory, analogous to $\mName{cons}$).
 
 \medskip
 \noindent\textbf{Inductive type verification.}
-The constructors for $D$ are {\color{red} C again, need to be renamed}
-$C = \{\mName{emptydir}_D,\;
-  (\mName{addfile}_{\cFunTyBX{F}{D}{D}},\; U_{\cSetTy{F}})\}$.
+The constructors for $D$ are
+$\mathcal{C} = \{\mName{emptydir}_D,\;
+  (\mName{addfile}_{\cFunTyBX{F}{D}{D}},\; U_{\cSetTy{F}})\}$
+(calligraphic $\mathcal{C}$ to avoid clash with base type $C$ of
+$\FILETYPE$).
 Here $\mName{emptydir}$ is a nullary constructor (first kind) and
 $(\mName{addfile}, U_{\cSetTy{F}})$ is a fourth-kind constructor:
 its type is $F \to D \to D$ (in Curryed form), the quasitype
@@ -369,13 +398,13 @@ of~\cite{farmer2025}):
   \item Structural induction: Axiom~16.
 \end{enumerate}
 
-Hence $(D, C)$ is a recursive inductive type in $\DIR$.  By
-the Inductive Types Theorem (Chapter~10 of~\cite{farmer2025}),
+Hence $(D, \mathcal{C})$ is a recursive inductive type in $\DIR$.
+By the Inductive Types Theorem (Chapter~10 of~\cite{farmer2025}),
 in every standard model $M$ of $\DIR$, $D_D^M$ consists of exactly
 $I^M(\mName{emptydir})$ and all values of the form
 $I^M(\mName{addfile})(d_f, \sigma)$ for $d_f \in D_F^M$ and
 $\sigma \in D_D^M$.  That is, $D_D^M$ is isomorphic to the set of
-finite multisets (or sequences, given injectivity) over $D_F^M$. {\color{red} its better to say this, i think: finite lists of elements of $D_F^M$}
+finite lists of elements of $D_F^M$.
 
 \medskip
 \noindent\textbf{Comparison with LIST-TYPE.}

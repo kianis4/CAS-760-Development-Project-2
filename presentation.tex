@@ -12,9 +12,23 @@
 \input{simple-type-theory-def.tex}
 \input{alonzo-notation.tex}
 
+% Theory name macros
+\newcommand{\PERM}{\mName{PERM}}
+\newcommand{\FILETYPE}{\mName{FILE}}
+\newcommand{\SECFILE}{\mName{SECURED\text{-}FILE}}
+\newcommand{\DIR}{\mName{DIRECTORY}}
+\newcommand{\DIRDEV}{\mName{DIR\text{-}DEV}}
+
+% Constructor/operation name macros
+\newcommand{\mkfile}{\mName{mkfile}}
+\newcommand{\fname}{\mName{fname}}
+\newcommand{\fcontent}{\mName{fcontent}}
+\newcommand{\perm}{\mName{perm}}
+\newcommand{\prot}{\mName{protect}}
+
 \title{A Simple File System in Alonzo}
 \subtitle{CAS 760 --- Development 2 Project}
-\author{Suleyman Kiani \and Hamza}
+\author{Suleyman Kiani \and Hamza Jamil}
 \institute{McMaster University}
 \date{April 16, 2026}
 
@@ -28,48 +42,442 @@
 \tableofcontents
 \end{frame}
 
-%% Presentation guideline (~15 min):
-%%
-%% 1. Motivation (~2 min)
-%%    - File systems are a concrete, real-world system
-%%    - Natural hierarchy: permissions, files, directories
-%%    - Development graph shape (not linear) with shared base theories
-%%
-%% 2. Theory graph (~1 min)
-%%    - Show full diagram: PERM + FILE -> SECURED-FILE -> DIRECTORY
-%%    - Explain the extension and morphism relationships
-%%
-%% 3. Walk through modules (~6 min)
-%%    - PERM: permission levels, disjointness, ordering
-%%    - FILE: constructors, accessors, totality, injectivity
-%%    - SECURED-FILE: combining files with permissions
-%%    - DIRECTORY: inductive structure (emptydir, addentry)
-%%
-%% 4. DIR-DEV: definitions and theorems (~3 min)
-%%    - Show key Defs (contains, lookup, size)
-%%    - Show TOTAL theorems and algebraic properties
-%%    - Emphasize: ops defined in development (not as ext constants)
-%%    - Show a validation proof for one Def
-%%
-%% 5. Morphism: FILE-to-DIR (~2 min)
-%%    - How files embed as single-entry directories
-%%    - What Thm 14.16 gives us (theorem transport)
-%%
-%% 6. Conclusion (~1 min)
-%%
-%% Scope justification:
-%% - 6 modules forming a genuine graph
-%% - Theory defs, extensions, development, morphism
-%% - Follows monoids paper structure
-%% - Addresses all Project 1 feedback
-
+% ============================================================
 \section{Motivation}
+% ============================================================
+
+\begin{frame}{Motivation}
+We formalize a simple file system as a development graph in Alonzo,
+following the little theories method.
+
+\medskip
+A file system naturally involves:
+\begin{itemize}
+  \item files as named content-bearing objects,
+  \item permissions attached to files,
+  \item directories containing files,
+  \item operations on directories such as containment and size.
+\end{itemize}
+
+\medskip
+Our goal is to organize these ideas modularly using:
+\begin{itemize}
+  \item theory definitions,
+  \item theory extensions,
+  \item a development definition,
+  \item and a theory morphism.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Why Alonzo?}
+Alonzo is well suited for this project because it supports:
+\begin{itemize}
+  \item higher-order formalization in simple type theory,
+  \item abstract theories and theory extensions,
+  \item developments with definitions and theorems,
+  \item theory morphisms in the little theories method.
+\end{itemize}
+
+\medskip
+Our project uses six modules:
+\[
+\PERM,\quad \FILETYPE,\quad \SECFILE,\quad \DIR,\quad \DIRDEV,
+\quad \mName{FILE\text{-}to\text{-}DIR}.
+\]
+\end{frame}
+
+% ============================================================
 \section{Theory Graph}
+% ============================================================
+
+\begin{frame}{Theory Graph}
+\centering
+\begin{tikzpicture}[
+  theory/.style={draw, rounded corners, minimum width=2.5cm,
+                 minimum height=0.8cm, font=\small\ttfamily},
+  dev/.style={draw, dashed, rounded corners, minimum width=2.5cm,
+              minimum height=0.8cm, font=\small\ttfamily},
+  arr/.style={-{Stealth[length=6pt]}, thick},
+  morph/.style={-{Stealth[length=6pt]}, thick, dashed},
+  node distance=1.5cm
+]
+  \node[theory] (perm)  {PERM};
+  \node[theory, right=3.2cm of perm] (file) {FILE};
+  \node[theory, below right=1.5cm and 0.6cm of perm] (secfile) {SECURED-FILE};
+  \node[theory, below=of secfile] (dir) {DIRECTORY};
+  \node[dev, below left=1cm and 0cm of dir] (dirdev) {DIR-DEV};
+
+  \draw[arr] (perm) -- (secfile);
+  \draw[arr] (file) -- (secfile);
+  \draw[arr] (secfile) -- (dir);
+  \draw[arr] (dir) -- (dirdev);
+  \draw[morph] (file) to[bend right=30]
+    node[right, font=\scriptsize] {morphism} (dir);
+\end{tikzpicture}
+
+\medskip
+Solid boxes are theories. The dashed box is a development.
+\end{frame}
+
+\begin{frame}{Module Structure}
+\begin{itemize}
+  \item $\PERM$: permission levels.
+  \item $\FILETYPE$: files as name--content pairs.
+  \item $\SECFILE$: files equipped with permissions.
+  \item $\DIR$: flat directories built inductively from files.
+  \item $\DIRDEV$: defined operations and theorems on directories.
+  \item $\mName{FILE\text{-}to\text{-}DIR}$: embedding of files into directories.
+\end{itemize}
+
+\medskip
+This gives us a graph.
+\end{frame}
+
+% ============================================================
 \section{Permissions and Files}
+% ============================================================
+
+\begin{frame}{Permissions: Theory \texorpdfstring{$\PERM$}{PERM}}
+\textbf{Idea:} model permissions as a finite enumeration inductive type.
+
+\medskip
+Base type:
+\[
+P
+\]
+
+Constants:
+\[
+\mName{noaccess}_P,\quad
+\mName{rd}_P,\quad
+\mName{wr}_P,\quad
+\mName{admin}_P
+\]
+
+Axioms:
+\begin{enumerate}
+  \item $\cDistinctL{\mName{noaccess},\, \mName{rd},\, \mName{wr},\, \mName{admin}}$
+  \item $\cForallX{p}{\cSetTy{P}}{
+      \cImpliesX{p\;\mName{noaccess} \wedge p\;\mName{rd} \wedge p\;\mName{wr} \wedge p\;\mName{admin}}{
+        \cForallX{x}{P}{p\;x}}}$
+\end{enumerate}
+
+\medskip
+So $P$ has exactly four elements in every standard model.
+\end{frame}
+
+\begin{frame}{Files: Theory \texorpdfstring{$\FILETYPE$}{FILE}}
+\textbf{Idea:} a file is a named container for content.
+
+\medskip
+Base types:
+\[
+N,\quad C,\quad F
+\]
+
+Constants:
+\[
+\mkfile_{N \to C \to F},\qquad
+\fname_{F \to N},\qquad
+\fcontent_{F \to C}
+\]
+
+Key axioms:
+\begin{itemize}
+  \item $\cTotalB{\mkfile}$
+  \item $\cInjB{\mkfile}$
+  \item $\cForallBX{n}{N}{c}{C}{\cEqX{\fname(\mkfile\;n\;c)}{n}}$
+  \item $\cForallBX{n}{N}{c}{C}{\cEqX{\fcontent(\mkfile\;n\;c)}{c}}$
+  \item $\cForallX{f}{F}{\cEqX{\mkfile(\fname\;f)(\fcontent\;f)}{f}}$
+\end{itemize}
+
+\medskip
+Thus $F$ behaves like an abstract record type isomorphic to $N \times C$.
+\end{frame}
+
+% ============================================================
 \section{Secured Files and Directories}
+% ============================================================
+
+\begin{frame}{Secured Files: Theory Extension \texorpdfstring{$\SECFILE$}{SECURED-FILE}}
+\textbf{Idea:} combine files and permissions.  $\SECFILE$ is a
+\emph{joint extension} of both $\FILETYPE$ and $\PERM$
+(pushout-style construction).
+
+\medskip
+Extends: $\FILETYPE$ and $\PERM$.
+
+\medskip
+New base types: \emph{none}
+($P$ is inherited from $\PERM$; $N$, $C$, $F$ from $\FILETYPE$).
+
+\medskip
+New constants:
+\[
+\perm_{F \to P},\qquad
+\prot_{F \to P \to F}
+\]
+
+New axioms:
+\begin{enumerate}\setcounter{enumi}{7}
+  \item $\cTotal{\perm}$
+  \item $\cTotalB{\prot}$
+  \item $\cForallBX{f}{F}{p}{P}{\cEqX{\perm(\prot\;f\;p)}{p}}$
+  \item $\cForallBX{f}{F}{p}{P}{\cEqX{\fname(\prot\;f\;p)}{\fname\;f}}$
+  \item $\cForallBX{f}{F}{p}{P}{\cEqX{\fcontent(\prot\;f\;p)}{\fcontent\;f}}$
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{Directories: Theory Extension \texorpdfstring{$\DIR$}{DIRECTORY}}
+\textbf{Design choice:} directories are modelled as a \emph{flat} structure.
+
+\medskip
+New base type:
+\[
+D
+\]
+
+Constructors:
+\[
+\mName{emptydir}_D,\qquad
+\mName{addfile}_{F \to D \to D}
+\]
+
+Key axioms:
+\begin{enumerate}\setcounter{enumi}{12}
+  \item $\cTotalB{\mName{addfile}}$
+  \item $\cInjB{\mName{addfile}}$
+  \item $\cForallBX{f}{F}{d}{D}{
+      \cNotEqX{\mName{addfile}\;f\;d}{\mName{emptydir}}}$
+  \item $\cForallX{p}{\cSetTy{D}}{
+      \cImpliesX{p\;\mName{emptydir} \wedge
+        \cForallBX{f}{F}{d}{D}{\cImpliesX{p\;d}{p(\mName{addfile}\;f\;d)}}}{
+        \cForallX{d}{D}{p\;d}}}$
+\end{enumerate}
+
+\medskip
+This is list-like: a directory is either empty or formed by adding a file.
+\end{frame}
+
+\begin{frame}{Directories as an Inductive Type}
+The constructor set for $D$ is
+\[
+K_D = \left\{
+\mName{emptydir}_D,\;
+(\mName{addfile}_{F \to D \to D},\, U_{\cSetTy{F}})
+\right\}.
+\]
+
+\medskip
+Interpretation:
+\begin{itemize}
+  \item $\mName{emptydir}$ is the nullary constructor,
+  \item $\mName{addfile}$ is the recursive constructor,
+  \item $D$ is therefore a recursive inductive type.
+\end{itemize}
+
+\medskip
+In every standard model, $D$ is isomorphic to the set of
+finite lists of elements of $D_F^M$.
+\end{frame}
+
+% ============================================================
 \section{Directory Development}
+% ============================================================
+
+\begin{frame}{Directory Development: \texorpdfstring{$\DIRDEV$}{DIR-DEV}}
+Derived operations are introduced in a \emph{development}, not as
+primitive constants in a theory extension.
+
+\medskip
+This follows the lesson from Development Project 1:
+\begin{itemize}
+  \item define operations using definite descriptions,
+  \item validate that the $I$-terms denote values,
+  \item prove totality and key properties separately.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Definition of \texorpdfstring{$\mName{contains}$}{contains}}
+\[
+\mName{contains}_{N \to D \to \cB}
+=
+\cDefDesX{g}{N \to D \to \cB}{
+  \cForallX{n}{N}{\cEqX{g\;n\;\mName{emptydir}}{\cF}} \wedge
+  \cForallCX{n}{N}{f}{F}{d}{D}{
+    \cEqX{g\;n\;(\mName{addfile}\;f\;d)}{
+      (\cEqX{\fname\;f}{n}) \vee g\;n\;d}}}
+\]
+
+\medskip
+Meaning:
+\begin{itemize}
+  \item the empty directory contains nothing,
+  \item $\mName{addfile}\;f\;d$ contains $n$ iff either
+    $\fname\;f = n$ or $d$ already contains $n$.
+\end{itemize}
+
+Theorems:
+\[
+\cTotalB{\mName{contains}},
+\qquad
+\cForallX{n}{N}{\cEqX{\mName{contains}\;n\;\mName{emptydir}}{\cF}}.
+\]
+\end{frame}
+
+\begin{frame}{Definition of \texorpdfstring{$\mName{size}$}{size}}
+\[
+\mName{size}_{D \to \mathbb{N}}
+=
+\cDefDesX{g}{D \to \mathbb{N}}{
+  \cEqX{g\;\mName{emptydir}}{0} \wedge
+  \cForallBX{f}{F}{d}{D}{
+    \cEqX{g\;(\mName{addfile}\;f\;d)}{g\;d + 1}}}
+\]
+
+\medskip
+Meaning:
+\begin{itemize}
+  \item the empty directory has size $0$,
+  \item adding one file increases size by $1$.
+\end{itemize}
+
+Theorems:
+\[
+\cTotal{\mName{size}},
+\qquad
+\cEqX{\mName{size}\;\mName{emptydir}}{0},
+\]
+\[
+\cForallBX{f}{F}{d}{D}{
+  \cEqX{\mName{size}(\mName{addfile}\;f\;d)}{\mName{size}\;d + 1}},
+\qquad
+\cForallX{d}{D}{\mName{size}\;d \ge 0}.
+\]
+\end{frame}
+
+\begin{frame}{Example of Directory Evaluation}
+Let
+\[
+f_1 = \prot(\mkfile\;n_1\;c_1)\;\mName{rd},
+\qquad
+f_2 = \prot(\mkfile\;n_2\;c_2)\;\mName{wr},
+\]
+and define
+\[
+d = \mName{addfile}\;f_1\;(\mName{addfile}\;f_2\;\mName{emptydir}).
+\]
+
+Then:
+\[
+\mName{contains}\;n_1\;d = \cT,\qquad
+\mName{contains}\;n_2\;d = \cT,
+\]
+\[
+\mName{contains}\;n_3\;d = \cF,\qquad
+\mName{size}\;d = 2.
+\]
+
+\medskip
+So $d$ is a flat directory with exactly two file entries.
+\end{frame}
+
+% ============================================================
 \section{Theory Morphism}
+% ============================================================
+
+\begin{frame}{Theory Morphism: \texorpdfstring{$\mName{FILE\text{-}to\text{-}DIR}$}{FILE-to-DIR}}
+We define a theory morphism from $\FILETYPE$ to $\DIR$.
+
+\medskip
+Intuition:
+\[
+f \longmapsto \mName{addfile}\;f\;\mName{emptydir}
+\]
+
+So a single file is embedded as a one-entry directory.
+\end{frame}
+
+\begin{frame}{Translation}
+Type mapping:
+\[
+N \mapsto N,\qquad
+C \mapsto C,\qquad
+F \mapsto D
+\]
+
+Constant mapping:
+\[
+\mkfile_{N \to C \to F}
+\mapsto
+\lambda n:N.\,\lambda c:C.\,
+\mName{addfile}(\mkfile\;n\;c)\;\mName{emptydir}
+\]
+\[
+\fname_{F \to N}
+\mapsto
+\lambda d:D.\,\fname(\mName{extract}\;d)
+\]
+\[
+\fcontent_{F \to C}
+\mapsto
+\lambda d:D.\,\fcontent(\mName{extract}\;d)
+\]
+
+where
+\[
+\mName{extract}_{D \to F}
+=
+\lambda d:D.\,
+\cDefDesX{f}{F}{\cEqX{d}{\mName{addfile}\;f\;\mName{emptydir}}}.
+\]
+\end{frame}
+
+\begin{frame}{Why the Morphism Works}
+Key observation:
+for any single-entry directory,
+\[
+\mName{extract}(\mName{addfile}\;f\;\mName{emptydir}) = f
+\]
+by injectivity of $\mName{addfile}$.
+
+\medskip
+Then the translated FILE axioms are preserved:
+\begin{itemize}
+  \item totality of translated $\mkfile$,
+  \item injectivity of translated $\mkfile$,
+  \item accessor equations for $\fname$ and $\fcontent$,
+  \item surjectivity on the embedded image.
+\end{itemize}
+
+\medskip
+By the Morphism Theorem, theorems of $\FILETYPE$ transport to $\DIR$.
+\end{frame}
+
+% ============================================================
 \section{Conclusion}
+% ============================================================
+
+\begin{frame}{Conclusion}
+We formalized a simple file system in Alonzo using six modules:
+\begin{itemize}
+  \item $\PERM$
+  \item $\FILETYPE$
+  \item $\SECFILE$
+  \item $\DIR$
+  \item $\DIRDEV$
+  \item $\mName{FILE\text{-}to\text{-}DIR}$
+\end{itemize}
+
+\medskip
+Main outcomes:
+\begin{itemize}
+  \item permissions and files were specified independently,
+  \item secured files and directories were built modularly,
+  \item directory operations were defined in a development,
+  \item files were embedded into directories by a theory morphism.
+\end{itemize}
+\end{frame}
 
 \begin{frame}{Questions?}
 \centering

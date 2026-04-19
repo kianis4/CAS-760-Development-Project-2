@@ -155,11 +155,12 @@ distinct (using the $\mName{DISTINCT}$ abbreviation from
 Table~6.2 of~\cite{farmer2025}).  Axiom~2 is the structural
 induction principle: any predicate that holds for all four
 constructors holds for every element of $P$.  Together, these
-axioms make $(P, \mathcal{C})$ an enumeration inductive type where
-$\mathcal{C} = \{\mName{noaccess},\; \mName{rd},\; \mName{wr},\;
+axioms make $(P, K_P)$ an enumeration inductive type where
+$K_P = \{\mName{noaccess},\; \mName{rd},\; \mName{wr},\;
 \mName{admin}\}$, so in every standard model, $P$ has exactly
-four elements.  (We use the calligraphic $\mathcal{C}$ for the set
-of constructors to avoid clashing with the base type $C$ of
+four elements.  (We write $K_P$ for the set of constructors of $P$,
+following the standard inductive-type convention; the subscript
+also keeps the notation distinct from the base type $C$ of
 $\FILETYPE$.)
 
 % ============================================================
@@ -369,10 +370,8 @@ direction for future work.
 \medskip
 \noindent\textbf{Inductive type verification.}
 The constructors for $D$ are
-$\mathcal{C} = \{\mName{emptydir}_D,\;
-  (\mName{addfile}_{\cFunTyBX{F}{D}{D}},\; U_{\cSetTy{F}})\}$
-(calligraphic $\mathcal{C}$ to avoid clash with base type $C$ of
-$\FILETYPE$).
+$K_D = \{\mName{emptydir}_D,\;
+  (\mName{addfile}_{\cFunTyBX{F}{D}{D}},\; U_{\cSetTy{F}})\}$.
 Here $\mName{emptydir}$ is a nullary constructor (first kind) and
 $(\mName{addfile}, U_{\cSetTy{F}})$ is a fourth-kind constructor:
 its type is $F \to D \to D$ (in Curryed form), the quasitype
@@ -398,7 +397,7 @@ of~\cite{farmer2025}):
   \item Structural induction: Axiom~16.
 \end{enumerate}
 
-Hence $(D, \mathcal{C})$ is a recursive inductive type in $\DIR$.
+Hence $(D, K_D)$ is a recursive inductive type in $\DIR$.
 By the Inductive Types Theorem (Chapter~10 of~\cite{farmer2025}),
 in every standard model $M$ of $\DIR$, $D_D^M$ consists of exactly
 $I^M(\mName{emptydir})$ and all values of the form

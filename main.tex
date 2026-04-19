@@ -46,9 +46,9 @@ This paper formalizes a simple file system as a development graph
 in Alonzo, following the little theories method~\cite{farmer2025}.
 File systems are a fundamental concept in computing: they organize
 data into named, content-bearing objects (files), assign permissions
-to control access, and group files into hierarchical directories.
-Each of these concepts corresponds naturally to a theory in the
-little theories framework.
+to control access, and group files into directories.  Each of these
+concepts corresponds naturally to a theory in the little theories
+framework.
 
 We build a hierarchy of increasingly complex structures.  The base
 theories $\PERM$ and $\FILETYPE$ capture permissions and basic files
@@ -307,6 +307,23 @@ Definition~9.7 of~\cite{farmer2025}).
 We add two new constructors: $\mName{emptydir}$ (the empty
 directory, analogous to $\mName{nil}$ in lists) and $\mName{addfile}$ (add
 a file to a directory, analogous to $\mName{cons}$).
+
+\medskip
+\noindent\textbf{Design note on flat structure.}
+The constructor $\mName{addfile}$ has type
+$\cFunTyBX{F}{D}{D}$: it takes a \emph{file} (not a directory) as
+its first argument.  This makes $\DIR$ a flat container of
+$\SECFILE$ entries, mirroring the LIST pattern in the textbook.
+A hierarchical model would require a constructor
+$\mName{adddir} : \cFunTyBX{D}{D}{D}$ allowing directories to
+contain directories, yielding a tree-shaped inductive type.  The
+flat choice is intentional: it keeps the inductive type within the
+standard fourth-kind constructor pattern of Chapter~10
+of~\cite{farmer2025}, preserves the direct analogy with lists, and
+permits the clean $\mName{FILE\text{-}to\text{-}DIR}$ morphism in
+Section~\ref{sec:morphism}, which relies on unique extraction from
+single-entry directories.  A hierarchical extension is a natural
+direction for future work.
 
 \begin{theory-ext}
 {Directories}

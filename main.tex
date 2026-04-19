@@ -46,9 +46,9 @@ This paper formalizes a simple file system as a development graph
 in Alonzo, following the little theories method~\cite{farmer2025}.
 File systems are a fundamental concept in computing: they organize
 data into named, content-bearing objects (files), assign permissions
-to control access, and group files into directories.  Each of these
-concepts corresponds naturally to a theory in the little theories
-framework.
+to control access, and group files into hierarchical directories. {\color{red} is it hierarchical or flat?}
+Each of these concepts corresponds naturally to a theory in the
+little theories framework.
 
 We build a hierarchy of increasingly complex structures.  The base
 theories $\PERM$ and $\FILETYPE$ capture permissions and basic files
@@ -155,7 +155,7 @@ distinct (using the $\mName{DISTINCT}$ abbreviation from
 Table~6.2 of~\cite{farmer2025}).  Axiom~2 is the structural
 induction principle: any predicate that holds for all four
 constructors holds for every element of $P$.  Together, these
-axioms make $(P, C)$ an enumeration inductive type where
+axioms make $(P, C)$ {\color{red} I think we need to change C to something else, as C is a base type in Files} an enumeration inductive type where
 $C = \{\mName{noaccess},\; \mName{rd},\; \mName{wr},\;
 \mName{admin}\}$, so in every standard model, $P$ has exactly
 four elements.
@@ -244,6 +244,8 @@ ordering structure) is defined in $\PERM$; here we use $P$ as a base
 type whose properties will be inherited when $\SECFILE$ is connected
 to $\PERM$ in the full development graph.
 
+{\color{red} First, in SECURED-FILE, the current formal setup seems slightly off. Right now it is written as an extension of FILE that introduces a fresh base type P. Conceptually, though, SECURED-FILE is supposed to combine FILE and PERM. So the graph intuition says “FILE + PERM = SECURED-FILE,” but the module itself does not yet encode that properly. I think we should make the dependence on PERM more explicit/formal if possible.}
+
 \begin{theory-ext}
 {Secured Files}
 {$\SECFILE$.}
@@ -308,23 +310,6 @@ We add two new constructors: $\mName{emptydir}$ (the empty
 directory, analogous to $\mName{nil}$ in lists) and $\mName{addfile}$ (add
 a file to a directory, analogous to $\mName{cons}$).
 
-\medskip
-\noindent\textbf{Design note on flat structure.}
-The constructor $\mName{addfile}$ has type
-$\cFunTyBX{F}{D}{D}$: it takes a \emph{file} (not a directory) as
-its first argument.  This makes $\DIR$ a flat container of
-$\SECFILE$ entries, mirroring the LIST pattern in the textbook.
-A hierarchical model would require a constructor
-$\mName{adddir} : \cFunTyBX{D}{D}{D}$ allowing directories to
-contain directories, yielding a tree-shaped inductive type.  The
-flat choice is intentional: it keeps the inductive type within the
-standard fourth-kind constructor pattern of Chapter~10
-of~\cite{farmer2025}, preserves the direct analogy with lists, and
-permits the clean $\mName{FILE\text{-}to\text{-}DIR}$ morphism in
-Section~\ref{sec:morphism}, which relies on unique extraction from
-single-entry directories.  A hierarchical extension is a natural
-direction for future work.
-
 \begin{theory-ext}
 {Directories}
 {$\DIR$.}
@@ -356,7 +341,7 @@ direction for future work.
 
 \medskip
 \noindent\textbf{Inductive type verification.}
-The constructors for $D$ are
+The constructors for $D$ are {\color{red} C again, need to be renamed}
 $C = \{\mName{emptydir}_D,\;
   (\mName{addfile}_{\cFunTyBX{F}{D}{D}},\; U_{\cSetTy{F}})\}$.
 Here $\mName{emptydir}$ is a nullary constructor (first kind) and
@@ -390,7 +375,7 @@ in every standard model $M$ of $\DIR$, $D_D^M$ consists of exactly
 $I^M(\mName{emptydir})$ and all values of the form
 $I^M(\mName{addfile})(d_f, \sigma)$ for $d_f \in D_F^M$ and
 $\sigma \in D_D^M$.  That is, $D_D^M$ is isomorphic to the set of
-finite multisets (or sequences, given injectivity) over $D_F^M$.
+finite multisets (or sequences, given injectivity) over $D_F^M$. {\color{red} its better to say this, i think: finite lists of elements of $D_F^M$}
 
 \medskip
 \noindent\textbf{Comparison with LIST-TYPE.}
@@ -610,7 +595,128 @@ the directory structure.
 \label{sec:examples}
 % ============================================================
 
-% [Hamza's section]
+To illustrate the theories and development concretely, we consider
+a small symbolic instance consisting of two files and a directory
+containing them.  Let $n_1, n_2, n_3 : N$ and $c_1, c_2 : C$,
+with $n_1 \neq n_2$, $n_3 \neq n_1$, and $n_3 \neq n_2$.
+
+\medskip
+\noindent\textbf{Example 8.1 (Secured files).}
+Define
+\[
+  f_1 \;=\; \prot\;(\mkfile\;n_1\;c_1)\;\mName{rd},
+  \qquad
+  f_2 \;=\; \prot\;(\mkfile\;n_2\;c_2)\;\mName{wr}.
+\]
+By the axioms of $\FILETYPE$ and $\SECFILE$:
+\[
+  \fname\;f_1 = n_1,
+  \qquad
+  \fcontent\;f_1 = c_1,
+  \qquad
+  \perm\;f_1 = \mName{rd},
+\]
+and similarly
+\[
+  \fname\;f_2 = n_2,
+  \qquad
+  \fcontent\;f_2 = c_2,
+  \qquad
+  \perm\;f_2 = \mName{wr}.
+\]
+Thus $f_1$ and $f_2$ are files with the expected names, contents,
+and permission levels.
+
+\medskip
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{File} & \textbf{Name / Content} & \textbf{Permission} \\
+\hline
+$f_1$ & $(n_1, c_1)$ & $\mName{rd}$ \\
+$f_2$ & $(n_2, c_2)$ & $\mName{wr}$ \\
+\hline
+\end{tabular}
+\end{center}
+
+\medskip
+\noindent\textbf{Example 8.2 (A directory with two entries).}
+Define
+\[
+  d \;=\; \mName{addfile}\;f_1\;(\mName{addfile}\;f_2\;\mName{emptydir}).
+\]
+This is a flat directory with two entries.  By unfolding the
+definition of $\mName{contains}$:
+\[
+  \mName{contains}\;n_1\;d = \cT,
+  \qquad
+  \mName{contains}\;n_2\;d = \cT,
+  \qquad
+  \mName{contains}\;n_3\;d = \cF.
+\]
+Indeed, $d$ contains files with names $n_1$ and $n_2$, but no file
+with name $n_3$.  By the recursive definition of $\mName{size}$:
+\[
+  \mName{size}\;d
+  = \mName{size}\;(\mName{addfile}\;f_1\;(\mName{addfile}\;f_2\;\mName{emptydir}))
+  = \mName{size}\;(\mName{addfile}\;f_2\;\mName{emptydir}) + 1
+  = (\mName{size}\;\mName{emptydir} + 1) + 1
+  = 2.
+\]
+So the directory $d$ has exactly two file entries.
+
+\medskip
+\begin{center}
+\begin{tabular}{|c|}
+\hline
+\textbf{Directory $d$} \\
+\hline
+$f_1$ \\
+$f_2$ \\
+\hline
+\end{tabular}
+\end{center}
+
+\[
+  \mName{contains}\;n_1\;d = \cT,
+  \qquad
+  \mName{contains}\;n_2\;d = \cT,
+  \qquad
+  \mName{contains}\;n_3\;d = \cF,
+  \qquad
+  \mName{size}\;d = 2.
+\]
+
+\medskip
+\noindent\textbf{Example 8.3 (Embedding a file into a directory).}
+The theory morphism $\mName{FILE\text{-}to\text{-}DIR}$ maps a file
+to a one-entry directory.  In particular, the image of $f_1$ is
+\[
+  d_{f_1} \;=\; \mName{addfile}\;f_1\;\mName{emptydir}.
+\]
+Likewise,
+\[
+  d_{f_2} \;=\; \mName{addfile}\;f_2\;\mName{emptydir}.
+\]
+These are single-entry directories corresponding to the files
+$f_1$ and $f_2$.  Intuitively, the morphism identifies an
+individual file with the simplest directory that contains exactly
+that file.
+
+\medskip
+\begin{center}
+\begin{tabular}{ccc}
+$f_1$ & $\longmapsto$ & $\mName{addfile}\;f_1\;\mName{emptydir}$ \\[4pt]
+$f_2$ & $\longmapsto$ & $\mName{addfile}\;f_2\;\mName{emptydir}$
+\end{tabular}
+\end{center}
+
+These examples illustrate the intended behaviour of the six modules:
+$\PERM$ supplies the permission levels, $\FILETYPE$ constructs files,
+$\SECFILE$ assigns permissions to them, $\DIR$ builds flat
+directories from files, $\DIRDEV$ defines directory operations, and
+$\mName{FILE\text{-}to\text{-}DIR}$ embeds files into the directory
+structure.
 
 % ============================================================
 \section{Conclusion}

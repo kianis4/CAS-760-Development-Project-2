@@ -18,6 +18,7 @@
 \newcommand{\SECFILE}{\mName{SECURED\text{-}FILE}}
 \newcommand{\DIR}{\mName{DIRECTORY}}
 \newcommand{\DIRDEV}{\mName{DIR\text{-}DEV}}
+\newcommand{\FILEPERM}{\mName{FILE\text{-}PERM}}
 
 % Constructor/operation name macros
 \newcommand{\mkfile}{\mName{mkfile}}
@@ -30,7 +31,7 @@
 \subtitle{CAS 760 --- Development 2 Project}
 \author{Suleyman Kiani \and Hamza Jamil}
 \institute{McMaster University}
-\date{April 16, 2026}
+\date{April 21, 2026}
 
 \begin{document}
 
@@ -47,8 +48,7 @@
 % ============================================================
 
 \begin{frame}{Motivation}
-We formalize a simple file system as a development graph in Alonzo,
-following the little theories method.
+We formalize a simple file system as a development graph in Alonzo.
 
 \medskip
 A file system naturally involves:
@@ -137,59 +137,72 @@ This gives us a graph.
 \section{Permissions and Files}
 % ============================================================
 
-\begin{frame}{Permissions: Theory \texorpdfstring{$\PERM$}{PERM}}
+\begin{frame}{Theory for Permissions}
+
 \textbf{Idea:} model permissions as a finite enumeration inductive type.
 
 \medskip
-Base type:
-\[
-P
-\]
+\medskip
 
-Constants:
-\[
+\textbf{Name:} $\PERM$
+
+\textbf{Base type:}  $P$
+
+\textbf{Constants:}
+$
 \mName{noaccess}_P,\quad
 \mName{rd}_P,\quad
 \mName{wr}_P,\quad
 \mName{admin}_P
-\]
+$
 
-Axioms:
+\textbf{Axioms:}
 \begin{enumerate}
   \item $\cDistinctL{\mName{noaccess},\, \mName{rd},\, \mName{wr},\, \mName{admin}}$
+  \hfill (all constructors are distinct).
   \item $\cForallX{p}{\cSetTy{P}}{
       \cImpliesX{p\;\mName{noaccess} \wedge p\;\mName{rd} \wedge p\;\mName{wr} \wedge p\;\mName{admin}}{
         \cForallX{x}{P}{p\;x}}}$
+        \hfill (structural induction).
 \end{enumerate}
 
 \medskip
 So $P$ has exactly four elements in every standard model.
 \end{frame}
 
-\begin{frame}{Files: Theory \texorpdfstring{$\FILETYPE$}{FILE}}
+\begin{frame}{Theory for Files}
+
 \textbf{Idea:} a file is a named container for content.
 
 \medskip
-Base types:
-\[
-N,\quad C,\quad F
-\]
+\textbf{Name:} $\FILETYPE$
 
-Constants:
-\[
-\mkfile_{N \to C \to F},\qquad
+\textbf{Base types:} $N,\quad C,\quad F$
+
+\textbf{Constants:}
+$\mkfile_{N \to C \to F},\qquad
 \fname_{F \to N},\qquad
-\fcontent_{F \to C}
-\]
+\fcontent_{F \to C}$
 
-Key axioms:
-\begin{itemize}
-  \item $\cTotalB{\mkfile}$
-  \item $\cInjB{\mkfile}$
-  \item $\cForallBX{n}{N}{c}{C}{\cEqX{\fname(\mkfile\;n\;c)}{n}}$
-  \item $\cForallBX{n}{N}{c}{C}{\cEqX{\fcontent(\mkfile\;n\;c)}{c}}$
-  \item $\cForallX{f}{F}{\cEqX{\mkfile(\fname\;f)(\fcontent\;f)}{f}}$
-\end{itemize}
+\textbf{Axioms:}
+\begin{enumerate}
+    \item $\cTotalB{\mkfile}$
+    \hfill ($\mkfile$ is total).
+    \item $\cInjB{\mkfile}$
+    \hfill ($\mkfile$ is injective).
+    \item $\cForallBX{n}{N}{c}{C}{
+      \cEqX{\fname\;(\mkfile\;n\;c)}{n}}$
+    \hfill (name accessor).
+    \item $\cForallBX{n}{N}{c}{C}{
+      \cEqX{\fcontent\;(\mkfile\;n\;c)}{c}}$
+    \hfill (content accessor).
+    \item $\cTotal{\fname}$
+    \hfill ($\fname$ is total).
+    \item $\cTotal{\fcontent}$
+    \hfill ($\fcontent$ is total).
+    \item $\cForallX{f}{F}{\cEqX{\mkfile\;(\fname\;f)\;(\fcontent\;f)}{f}}$
+    \hfill (surjectivity of $\mkfile$).
+\end{enumerate}
 
 \medskip
 Thus $F$ behaves like an abstract record type isomorphic to $N \times C$.
@@ -199,60 +212,75 @@ Thus $F$ behaves like an abstract record type isomorphic to $N \times C$.
 \section{Secured Files and Directories}
 % ============================================================
 
-\begin{frame}{Secured Files: Theory Extension \texorpdfstring{$\SECFILE$}{SECURED-FILE}}
-\textbf{Idea:} combine files and permissions.  $\SECFILE$ is a
-\emph{joint extension} of both $\FILETYPE$ and $\PERM$
-(pushout-style construction).
+\begin{frame}{ Theory Extension for Secured Files}
+
+\textbf{Idea:} combine files and permissions.  %$\SECFILE$ is a
+%\emph{joint extension} of both $\FILETYPE$ and $\PERM$
+%(pushout-style construction).
 
 \medskip
-Extends: $\FILETYPE$ and $\PERM$.
+\textbf{Name:} $\SECFILE$
+
+\textbf{Extends:} $\FILEPERM$
 
 \medskip
-New base types: \emph{none}
+\textbf{New base types:} \emph{None.}
+
 ($P$ is inherited from $\PERM$; $N$, $C$, $F$ from $\FILETYPE$).
 
 \medskip
-New constants:
-\[
-\perm_{F \to P},\qquad
-\prot_{F \to P \to F}
-\]
+\textbf{New constants:}
+$\perm_{F \to P},\qquad
+\prot_{F \to P \to F}$
 
-New axioms:
-\begin{enumerate}\setcounter{enumi}{7}
-  \item $\cTotal{\perm}$
-  \item $\cTotalB{\prot}$
-  \item $\cForallBX{f}{F}{p}{P}{\cEqX{\perm(\prot\;f\;p)}{p}}$
-  \item $\cForallBX{f}{F}{p}{P}{\cEqX{\fname(\prot\;f\;p)}{\fname\;f}}$
-  \item $\cForallBX{f}{F}{p}{P}{\cEqX{\fcontent(\prot\;f\;p)}{\fcontent\;f}}$
+\textbf{New axioms:}
+\begin{enumerate}
+    \item $\cTotal{\perm}$
+    \hfill ($\perm$ is total).
+    \item $\cTotalB{\prot}$
+    \hfill ($\prot$ is total).
+    \item $\cForallBX{f}{F}{p}{P}{
+        \cEqX{\perm\;(\prot\;f\;p)}{p}}$
+    \hfill (protect sets permission).
+    \item $\cForallBX{f}{F}{p}{P}{
+      \cEqX{\fname\;(\prot\;f\;p)}{\fname\;f}}$
+    \hfill (protect preserves name).
+    \item $\cForallBX{f}{F}{p}{P}{
+      \cEqX{\fcontent\;(\prot\;f\;p)}{\fcontent\;f}}$
+    \hfill (protect preserves content).
 \end{enumerate}
 \end{frame}
 
-\begin{frame}{Directories: Theory Extension \texorpdfstring{$\DIR$}{DIRECTORY}}
+\begin{frame}{Theory Extension for Directories}
+
 \textbf{Design choice:} directories are modelled as a \emph{flat} structure.
 
 \medskip
-New base type:
-\[
-D
-\]
+\textbf{Name:} $\DIR$
 
-Constructors:
-\[
-\mName{emptydir}_D,\qquad
-\mName{addfile}_{F \to D \to D}
-\]
+\textbf{Extends:} $\SECFILE$.
 
-Key axioms:
-\begin{enumerate}\setcounter{enumi}{12}
-  \item $\cTotalB{\mName{addfile}}$
-  \item $\cInjB{\mName{addfile}}$
-  \item $\cForallBX{f}{F}{d}{D}{
+\textbf{New base type:} $D$
+
+\textbf{New Constants:}
+$\mName{emptydir}_D,\qquad
+\mName{addfile}_{F \to D \to D}$
+
+\textbf{New axioms:}
+\begin{enumerate}\setcounter{enumi}{5}
+    \item $\cTotalB{\mName{addfile}}$
+      \hfill ($\mName{addfile}$ is total).
+    \item $\cInjB{\mName{addfile}}$
+      \hfill ($\mName{addfile}$ is injective).
+    \item $\cForallBX{f}{F}{d}{D}{
       \cNotEqX{\mName{addfile}\;f\;d}{\mName{emptydir}}}$
-  \item $\cForallX{p}{\cSetTy{D}}{
-      \cImpliesX{p\;\mName{emptydir} \wedge
-        \cForallBX{f}{F}{d}{D}{\cImpliesX{p\;d}{p(\mName{addfile}\;f\;d)}}}{
+      \hfill (disjointness).
+    \item $\cForallX{p}{\cSetTy{D}}{
+      \cImpliesX{p\;\mName{emptydir} \;\wedge\;
+        \cForallBX{f}{F}{d}{D}{
+          \cImpliesX{p\;d}{p\;(\mName{addfile}\;f\;d)}}}{
         \cForallX{d}{D}{p\;d}}}$
+      \hfill (structural induction).
 \end{enumerate}
 
 \medskip
@@ -285,169 +313,178 @@ finite lists of elements of $D_F^M$.
 \section{Directory Development}
 % ============================================================
 
-\begin{frame}{Directory Development: \texorpdfstring{$\DIRDEV$}{DIR-DEV}}
-Derived operations are introduced in a \emph{development}, not as
-primitive constants in a theory extension.
+\begin{frame}{Directory Development}
+\small
+We now define derived operations on directories and prove key
+properties.
+\medskip
+
+\textbf{Name:} $\DIRDEV$
+
+\textbf{Bottom theory:} $\DIR$.
 
 \medskip
-This follows the lesson from Development Project 1:
-\begin{itemize}
-  \item define operations using definite descriptions,
-  \item validate that the $I$-terms denote values,
-  \item prove totality and key properties separately.
-\end{itemize}
-\end{frame}
+\textbf{Definitions and theorems:}
 
-\begin{frame}{Definition of \texorpdfstring{$\mName{contains}$}{contains}}
-\[
-\mName{contains}_{N \to D \to \cB}
-=
+\medskip
+\textbf{Def\,1} ($\mName{contains}$). \quad
+$\mName{contains}_{\cFunTyBX{N}{D}{\cB}} \;=\;
 \cDefDesX{g}{N \to D \to \cB}{
-  \cForallX{n}{N}{\cEqX{g\;n\;\mName{emptydir}}{\cF}} \wedge
+  \cForallX{n}{N}{\cEqX{g\;n\;\mName{emptydir}}{\cF}} \;\wedge\;
   \cForallCX{n}{N}{f}{F}{d}{D}{
     \cEqX{g\;n\;(\mName{addfile}\;f\;d)}{
-      (\cEqX{\fname\;f}{n}) \vee g\;n\;d}}}
-\]
+      (\cEqX{\fname\;f}{n}) \vee g\;n\;d}}}$
 
 \medskip
-Meaning:
-\begin{itemize}
-  \item the empty directory contains nothing,
-  \item $\mName{addfile}\;f\;d$ contains $n$ iff either
-    $\fname\;f = n$ or $d$ already contains $n$.
-\end{itemize}
+\textbf{Thm\,1.} \quad $\cTotalB{\mName{contains}}$
+\hfill ($\mName{contains}$ is total).
 
-Theorems:
-\[
-\cTotalB{\mName{contains}},
-\qquad
-\cForallX{n}{N}{\cEqX{\mName{contains}\;n\;\mName{emptydir}}{\cF}}.
-\]
+\textbf{Thm\,2.} \quad
+$\cForallX{n}{N}{\cEqX{\mName{contains}\;n\;\mName{emptydir}}{\cF}}$
+\hfill (empty directory contains nothing).
+
+\medskip
+\textbf{Def\,2} ($\mName{size}$). \quad
+$\mName{size}_{\cFunTyX{D}{\mathbb{N}}} \;=\;
+\cDefDesX{g}{D \to \mathbb{N}}{
+  \cEqX{g\;\mName{emptydir}}{0} \;\wedge\;
+  \cForallBX{f}{F}{d}{D}{
+    \cEqX{g\;(\mName{addfile}\;f\;d)}{g\;d + 1}}}$
+
+\medskip
+\textbf{Thm\,3.} \quad $\cTotal{\mName{size}}$
+\hfill ($\mName{size}$ is total).
+
+\textbf{Thm\,4.} \quad
+$\cEqX{\mName{size}\;\mName{emptydir}}{0}$
+\hfill (empty directory has size zero).
+
+\textbf{Thm\,5.} \quad
+$\cForallBX{f}{F}{d}{D}{
+  \cEqX{\mName{size}\;(\mName{addfile}\;f\;d)}{\mName{size}\;d + 1}}$
+\hfill (addfile increments size).
+
+\textbf{Thm\,6.} \quad
+$\cForallX{d}{D}{\mName{size}\;d \ge 0}$
+\hfill (size is non-negative).
+
 \end{frame}
 
-\begin{frame}{Definition of \texorpdfstring{$\mName{size}$}{size}}
-\[
-\mName{size}_{D \to \mathbb{N}}
-=
-\cDefDesX{g}{D \to \mathbb{N}}{
-  \cEqX{g\;\mName{emptydir}}{0} \wedge
-  \cForallBX{f}{F}{d}{D}{
-    \cEqX{g\;(\mName{addfile}\;f\;d)}{g\;d + 1}}}
-\]
-
-\medskip
-Meaning:
+\begin{frame}{Explanation for Directory Development}
+\small
+\textbf{Contains.}
+The predicate $\mName{contains}\;n\;d$ tests whether a file with
+name $n$ exists in directory $d$. It is defined by structural
+recursion on $d$:
 \begin{itemize}
-  \item the empty directory has size $0$,
-  \item adding one file increases size by $1$.
+  \item the empty directory contains nothing;
+  \item $\mName{addfile}\;f\;d$ contains $n$ iff either
+  $\fname\;f = n$ or $d$ already contains $n$.
 \end{itemize}
 
-Theorems:
-\[
-\cTotal{\mName{size}},
-\qquad
-\cEqX{\mName{size}\;\mName{emptydir}}{0},
-\]
-\[
-\cForallBX{f}{F}{d}{D}{
-  \cEqX{\mName{size}(\mName{addfile}\;f\;d)}{\mName{size}\;d + 1}},
-\qquad
-\cForallX{d}{D}{\mName{size}\;d \ge 0}.
-\]
+\medskip
+\textbf{Size.}
+The function $\mName{size}\;d$ returns the number of file entries
+in directory $d$:
+\begin{itemize}
+  \item $\mName{size}\;\mName{emptydir} = 0$;
+  \item $\mName{size}\;(\mName{addfile}\;f\;d) = \mName{size}\;d + 1$.
+\end{itemize}
+
+\medskip
+Both definitions are validated in the appendix by proving that the
+corresponding definite descriptions denote values.
 \end{frame}
 
 \begin{frame}{Example of Directory Evaluation}
+\small
 Let
 \[
-f_1 = \prot(\mkfile\;n_1\;c_1)\;\mName{rd},
+f_1 \;=\; \prot\;(\mkfile\;n_1\;c_1)\;\mName{rd},
 \qquad
-f_2 = \prot(\mkfile\;n_2\;c_2)\;\mName{wr},
+f_2 \;=\; \prot\;(\mkfile\;n_2\;c_2)\;\mName{wr},
 \]
 and define
 \[
-d = \mName{addfile}\;f_1\;(\mName{addfile}\;f_2\;\mName{emptydir}).
+d \;=\; \mName{addfile}\;f_1\;(\mName{addfile}\;f_2\;\mName{emptydir}).
 \]
 
 Then:
 \[
-\mName{contains}\;n_1\;d = \cT,\qquad
+\mName{contains}\;n_1\;d = \cT,
+\qquad
 \mName{contains}\;n_2\;d = \cT,
 \]
 \[
-\mName{contains}\;n_3\;d = \cF,\qquad
+\mName{contains}\;n_3\;d = \cF,
+\qquad
 \mName{size}\;d = 2.
 \]
 
 \medskip
-So $d$ is a flat directory with exactly two file entries.
+Thus $d$ is a flat directory with exactly two file entries.
 \end{frame}
 
 % ============================================================
 \section{Theory Morphism}
 % ============================================================
 
-\begin{frame}{Theory Morphism: \texorpdfstring{$\mName{FILE\text{-}to\text{-}DIR}$}{FILE-to-DIR}}
-We define a theory morphism from $\FILETYPE$ to $\DIR$.
+\begin{frame}[fragile]{Theory Translation}
+\small
+To define the accessor translations, we use the fact that
+$\cInjB{\mName{addfile}}$ allows us to extract the unique file from
+a single-entry directory. Define:
+\[
+  \mName{extract}_{\cFunTyX{D}{F}} \;=\;
+  \cFunAbsX{d}{D}{\cDefDesX{f}{F}{
+    \cEqX{d}{\mName{addfile}\;f\;\mName{emptydir}}}}
+\]
 
 \medskip
-Intuition:
-\[
-f \longmapsto \mName{addfile}\;f\;\mName{emptydir}
-\]
 
-So a single file is embedded as a one-entry directory.
-\end{frame}
+\textbf{Name:} $\mName{FILE\text{-}to\text{-}DIR}$
 
-\begin{frame}{Translation}
-Type mapping:
-\[
-N \mapsto N,\qquad
-C \mapsto C,\qquad
-F \mapsto D
-\]
+\textbf{Source theory:} $\FILETYPE$
 
-Constant mapping:
-\[
-\mkfile_{N \to C \to F}
-\mapsto
-\lambda n:N.\,\lambda c:C.\,
-\mName{addfile}(\mkfile\;n\;c)\;\mName{emptydir}
-\]
-\[
-\fname_{F \to N}
-\mapsto
-\lambda d:D.\,\fname(\mName{extract}\;d)
-\]
-\[
-\fcontent_{F \to C}
-\mapsto
-\lambda d:D.\,\fcontent(\mName{extract}\;d)
-\]
+\textbf{Target theory:} $\DIR$
 
-where
-\[
-\mName{extract}_{D \to F}
-=
-\lambda d:D.\,
-\cDefDesX{f}{F}{\cEqX{d}{\mName{addfile}\;f\;\mName{emptydir}}}.
-\]
-\end{frame}
-
-\begin{frame}{Why the Morphism Works}
-Key observation:
-for any single-entry directory,
-\[
-\mName{extract}(\mName{addfile}\;f\;\mName{emptydir}) = f
-\]
-by injectivity of $\mName{addfile}$.
-
-\medskip
-Then the translated FILE axioms are preserved:
+\textbf{Base type mapping:}
 \begin{itemize}
-  \item totality of translated $\mkfile$,
-  \item injectivity of translated $\mkfile$,
-  \item accessor equations for $\fname$ and $\fcontent$,
-  \item surjectivity on the embedded image.
+  \item[] $N \;\mapsto\; N$ \quad (names preserved)
+  \item[] $C \;\mapsto\; C$ \quad (contents preserved)
+  \item[] $F \;\mapsto\; D$
+\end{itemize}
+
+\textbf{Constants mapping:}
+\begin{itemize}
+  \item[] $\mkfile_{N \to C \to F} \;\mapsto\;
+    \cFunAbsX{n}{N}{\cFunAbsX{c}{C}{
+      \mName{addfile}\;(\mkfile\;n\;c)\;\mName{emptydir}}}$
+  \item[] $\fname_{F \to N} \;\mapsto\;
+    \cFunAbsX{d}{D}{\fname\;(\mName{extract}\;d)}$
+  \item[] $\fcontent_{F \to C} \;\mapsto\;
+    \cFunAbsX{d}{D}{\fcontent\;(\mName{extract}\;d)}$
+\end{itemize}
+
+
+\end{frame}
+
+\begin{frame}{Verification of the Morphism}
+\small
+Key observation: on single-entry directories,
+\[
+\mName{extract}\;(\mName{addfile}\;f\;\mName{emptydir}) = f
+\]
+by uniqueness of the definite description and injectivity of
+$\mName{addfile}$.
+
+\medskip
+Hence:
+\begin{itemize}
+  \item TOTAL2($\mkfile$) maps to totality of the translated constructor;
+  \item INJ2($\mkfile$) maps to injectivity;
+  \item the accessor axioms for $\fname$ and $\fcontent$ are preserved;
+  \item surjectivity is preserved on the embedded image.
 \end{itemize}
 
 \medskip
@@ -459,23 +496,24 @@ By the Morphism Theorem, theorems of $\FILETYPE$ transport to $\DIR$.
 % ============================================================
 
 \begin{frame}{Conclusion}
+\small
 We formalized a simple file system in Alonzo using six modules:
-\begin{itemize}
-  \item $\PERM$
-  \item $\FILETYPE$
-  \item $\SECFILE$
-  \item $\DIR$
-  \item $\DIRDEV$
-  \item $\mName{FILE\text{-}to\text{-}DIR}$
-\end{itemize}
+\[
+\PERM,\quad
+\FILETYPE,\quad
+\SECFILE,\quad
+\DIR,\quad
+\DIRDEV,\quad
+\mName{FILE\text{-}to\text{-}DIR}.
+\]
 
 \medskip
 Main outcomes:
 \begin{itemize}
-  \item permissions and files were specified independently,
-  \item secured files and directories were built modularly,
-  \item directory operations were defined in a development,
-  \item files were embedded into directories by a theory morphism.
+  \item permissions and files are specified independently;
+  \item secured files and flat directories are built modularly;
+  \item directory operations are defined in a development;
+  \item files are embedded into directories by a theory morphism.
 \end{itemize}
 \end{frame}
 

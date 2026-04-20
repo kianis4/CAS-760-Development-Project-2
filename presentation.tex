@@ -221,7 +221,7 @@ Thus $F$ behaves like an abstract record type isomorphic to $N \times C$.
 \medskip
 \textbf{Name:} $\SECFILE$
 
-\textbf{Extends:} $\FILEPERM$
+\textbf{Extends:} $\FILETYPE$ and $\PERM$
 
 \medskip
 \textbf{New base types:} \emph{None.}
@@ -234,7 +234,7 @@ $\perm_{F \to P},\qquad
 \prot_{F \to P \to F}$
 
 \textbf{New axioms:}
-\begin{enumerate}
+\begin{enumerate}\setcounter{enumi}{7}
     \item $\cTotal{\perm}$
     \hfill ($\perm$ is total).
     \item $\cTotalB{\prot}$
@@ -267,7 +267,7 @@ $\mName{emptydir}_D,\qquad
 \mName{addfile}_{F \to D \to D}$
 
 \textbf{New axioms:}
-\begin{enumerate}\setcounter{enumi}{5}
+\begin{enumerate}\setcounter{enumi}{12}
     \item $\cTotalB{\mName{addfile}}$
       \hfill ($\mName{addfile}$ is total).
     \item $\cInjB{\mName{addfile}}$

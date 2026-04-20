@@ -20,8 +20,6 @@
 \newcommand{\DIR}{\mName{DIRECTORY}}
 \newcommand{\DIRDEV}{\mName{DIR\text{-}DEV}}
 
-\newcommand{\FILEPERM}{\mName{FILE\text{-}PERM}}
-
 % Constructor/operation name macros
 \newcommand{\mkfile}{\mName{mkfile}}
 \newcommand{\fname}{\mName{fname}}
@@ -296,83 +294,6 @@ of~\cite{farmer2025}).  The language of $\SECFILE$ is the union of
 the languages of $\FILETYPE$ and $\PERM$, augmented with the
 constants $\perm$ and $\prot$.
 
-
-%----------------
-
-\newpage
-\section{Secured Files}
-\label{sec:secfiles}
-% ============================================================
-
-A \emph{secured file} is a file that has been assigned a permission
-level.  Formally, we construct the theory of secured files in two
-steps, following the theory-graph combinators of Chapter~14
-of~\cite{farmer2025}.
-
-First, let $\FILEPERM$ be the theory obtained by combining
-$\FILETYPE$ and $\PERM$ over a common trivial subtheory, as in the
-theory combination construction of Example~14.63
-of~\cite{farmer2025}.  Since $\FILETYPE$ and $\PERM$ have disjoint
-base types and disjoint constants, this combination is defined and
-yields a theory whose language is the union of the languages of
-$\FILETYPE$ and $\PERM$.  Thus $\FILEPERM$ contains the base types
-$N$, $C$, $F$, $P$ and the constants
-$\mkfile$, $\fname$, $\fcontent$,
-$\mName{noaccess}$, $\mName{rd}$, $\mName{wr}$, and
-$\mName{admin}$, together with all the axioms of both parent
-theories.
-
-Second, we define $\SECFILE$ as an ordinary theory extension of
-$\FILEPERM$, following the theory extension construction of
-Example~14.61 of~\cite{farmer2025}.  The only new symbols added are
-$\perm$ and $\prot$, which relate the inherited permission type $P$
-to the inherited file type $F$.
-
-\begin{theory-ext}
-{Secured Files}
-{$\SECFILE$.}
-{$\FILEPERM$.}
-{None.}
-{$\perm_{\cFunTyX{F}{P}}$,\;
- $\prot_{\cFunTyBX{F}{P}{F}}$.}
-{
-\be
-\item $\cTotal{\perm}$
-      \hfill ($\perm$ is total).
-
-\item $\cTotalB{\prot}$
-      \hfill ($\prot$ is total).
-
-\item $\cForallBX{f}{F}{p}{P}{
-      \cEqX{\perm\;(\prot\;f\;p)}{p}}$
-      \hfill (protect sets permission).
-
-\item $\cForallBX{f}{F}{p}{P}{
-      \cEqX{\fname\;(\prot\;f\;p)}{\fname\;f}}$
-      \hfill (protect preserves name).
-
-\item $\cForallBX{f}{F}{p}{P}{
-      \cEqX{\fcontent\;(\prot\;f\;p)}{\fcontent\;f}}$
-      \hfill (protect preserves content).
-\ee
-}
-\end{theory-ext}
-
-\medskip
-\noindent\textbf{Explanation of the axioms.}
-Axiom~1 states that every file has an assigned permission.
-Axiom~2 ensures that applying a permission always succeeds.
-Axiom~3 defines the core semantics of $\prot$: after applying
-$\prot\;f\;p$, the permission of the resulting file is $p$.
-Axioms~4--5 guarantee that $\prot$ only changes the permission
---- it does not alter the file's name or content.
-
-The theory $\SECFILE$ is therefore obtained by extending the
-combined theory $\FILEPERM$ with the constants $\perm$ and $\prot$
-and the five axioms above.  Its language contains all the symbols of
-$\FILETYPE$ and $\PERM$, together with the new constants
-$\perm$ and $\prot$.
-%------------------
 % ============================================================
 \newpage
 \section{Directories}
@@ -585,110 +506,6 @@ unique function satisfying the given recursion equations.  The
 validations prove that these definite descriptions are defined
 (i.e., the $\mathrm{I}$-terms denote values).
 
-% ============================================================
-\newpage
-\section{Theory Morphism: Files to Directories}
-\label{sec:morphism}
-% ============================================================
-
-We exhibit a theory morphism from $\FILETYPE$ to $\DIR$ to
-demonstrate that individual files embed into the directory
-structure.  Intuitively, a single file $f$ corresponds to the
-one-element directory $\mName{addfile}\;f\;\mName{emptydir}$.
-
-Since $\DIR$ is obtained from $\FILETYPE$ by a chain of
-extensions ($\FILETYPE \leq \SECFILE \leq \DIR$), the constants
-$\mkfile$, $\fname$, and $\fcontent$ and the base types $N$, $C$,
-$F$ already belong to the language of $\DIR$.  We define a
-\emph{non-trivial} morphism that reinterprets the file type $F$ as
-the directory type $D$.
-
-To define the accessor translations, we use the fact that
-$\cInjB{\mName{addfile}}$ (Axiom~14) allows us to extract the
-unique file from a single-entry directory.  Define:
-\[
-  \mName{extract}_{\cFunTyX{D}{F}} \;=\;
-  \cFunAbsX{d}{D}{\cDefDesX{f}{F}{
-    \cEqX{d}{\mName{addfile}\;f\;\mName{emptydir}}}}
-\]
-This definite description is defined on the image of the
-embedding (single-entry directories) by Axiom~14.
-
-\begin{theory-trans-def}
-{Files to Directories}
-{$\mName{FILE\text{-}to\text{-}DIR}$.}
-{$\FILETYPE$.}
-{$\DIR$.}
-{%
-\begin{itemize}
-  \item[] $N \;\mapsto\; N$ \quad (names preserved)
-  \item[] $C \;\mapsto\; C$ \quad (contents preserved)
-  \item[] $F \;\mapsto\; D$
-\end{itemize}
-}
-{%
-\begin{itemize}
-  \item[] $\mkfile_{N \to C \to F} \;\mapsto\;
-    \cFunAbsX{n}{N}{\cFunAbsX{c}{C}{
-      \mName{addfile}\;(\mkfile\;n\;c)\;\mName{emptydir}}}$
-  \item[] $\fname_{F \to N} \;\mapsto\;
-    \cFunAbsX{d}{D}{\fname\;(\mName{extract}\;d)}$
-  \item[] $\fcontent_{F \to C} \;\mapsto\;
-    \cFunAbsX{d}{D}{\fcontent\;(\mName{extract}\;d)}$
-\end{itemize}
-}
-\end{theory-trans-def}
-
-\medskip
-\noindent\textbf{Verification.}
-We must show that the image of each $\FILETYPE$ axiom under this
-morphism is valid in $\DIR$.  The key observation is that on
-single-entry directories (those of the form
-$\mName{addfile}\;f\;\mName{emptydir}$),
-$\mName{extract}\;(\mName{addfile}\;f\;\mName{emptydir}) = f$
-by the uniqueness of the definite description (using
-$\cInjB{\mName{addfile}}$, Axiom~14).
-
-\begin{enumerate}
-  \item \textbf{TOTAL2($\mkfile$) maps to totality of the
-    translation}: Since $\cTotalB{\mName{addfile}}$ (Axiom~13)
-    and $\cTotalB{\mkfile}$ (Axiom~1),
-    $\cFunAbsX{n}{N}{\cFunAbsX{c}{C}{
-      \mName{addfile}\;(\mkfile\;n\;c)\;\mName{emptydir}}}$
-    is total.
-
-  \item \textbf{INJ2($\mkfile$) maps to injectivity}: If
-    $\mName{addfile}\;(\mkfile\;n_1\;c_1)\;\mName{emptydir}
-    = \mName{addfile}\;(\mkfile\;n_2\;c_2)\;\mName{emptydir}$,
-    then $\mkfile\;n_1\;c_1 = \mkfile\;n_2\;c_2$ by
-    $\cInjB{\mName{addfile}}$ (Axiom~14), and $n_1 = n_2$,
-    $c_1 = c_2$ by $\cInjB{\mkfile}$ (Axiom~2).
-
-  \item \textbf{Accessor axioms (Axioms 3--4)}: For a
-    single-entry directory
-    $d = \mName{addfile}\;(\mkfile\;n\;c)\;\mName{emptydir}$:
-    $\fname\;(\mName{extract}\;d)
-    = \fname\;(\mkfile\;n\;c) = n$ (Axiom~3),
-    and similarly $\fcontent\;(\mName{extract}\;d) = c$ (Axiom~4).
-
-  \item \textbf{Totality of accessors (Axioms 5--6)}: Follows
-    from the totality of $\fname$, $\fcontent$, and the
-    definedness of $\mName{extract}$ on single-entry directories.
-
-  \item \textbf{Surjectivity (Axiom 7)}: For any single-entry
-    directory $d$, $\mName{extract}\;d = f$ for some $f : F$,
-    and the translated $\mkfile$ applied to $\fname\;f$ and
-    $\fcontent\;f$ reconstructs $d$ by Axiom~7 of $\FILETYPE$.
-\end{enumerate}
-
-By the Morphism Theorem (Theorem~14.16 of~\cite{farmer2025}),
-all theorems of $\FILETYPE$ transport to $\DIR$ under this
-morphism.  This confirms that single files embed faithfully into
-the directory structure.
-
-
-
-
 
 
 % ============================================================
@@ -702,10 +519,10 @@ demonstrate that individual files embed into the directory
 structure.  Intuitively, a single file $f$ corresponds to the
 one-entry directory $\mName{addfile}\;f\;\mName{emptydir}$.
 
-Since $\DIR$ extends $\SECFILE$, and $\SECFILE$ extends the
-combined theory $\FILEPERM$, the base types $N$, $C$, $F$ and the
-constants $\mkfile$, $\fname$, and $\fcontent$ from $\FILETYPE$
-are all available in the language of $\DIR$.  To obtain a
+Since $\DIR$ extends $\SECFILE$, and $\SECFILE$ is a joint
+extension of $\FILETYPE$ and $\PERM$, the base types $N$, $C$, $F$
+and the constants $\mkfile$, $\fname$, and $\fcontent$ from
+$\FILETYPE$ are all available in the language of $\DIR$.  To obtain a
 well-formed theory translation in the sense of Chapter~14
 of~\cite{farmer2025}, we do \emph{not} map the source base type
 $F$ to the whole target type $D$.  Instead, we map $F$ to the

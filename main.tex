@@ -20,6 +20,8 @@
 \newcommand{\DIR}{\mName{DIRECTORY}}
 \newcommand{\DIRDEV}{\mName{DIR\text{-}DEV}}
 
+\newcommand{\FILEPERM}{\mName{FILE\text{-}PERM}}
+
 % Constructor/operation name macros
 \newcommand{\mkfile}{\mName{mkfile}}
 \newcommand{\fname}{\mName{fname}}
@@ -99,16 +101,6 @@ extensions.  The dashed arrow denotes the theory morphism
 $\mName{FILE\text{-}to\text{-}DIR}$.
 
 \medskip
-\noindent\textbf{Work division.}
-\begin{itemize}
-  \item \textbf{Suleyman Kiani}: $\FILETYPE$, $\SECFILE$, $\DIR$,
-    $\DIRDEV$ (Sections~\ref{sec:files}--\ref{sec:dir-dev}),
-    including all proofs and validations.
-  \item \textbf{Hamza Jamil}: $\PERM$, theory morphism
-    $\mName{FILE\text{-}to\text{-}DIR}$
-    (Sections~\ref{sec:perm} and~\ref{sec:morphism}),
-    examples, and presentation lead.
-\end{itemize}
 
 % ============================================================
 \newpage
@@ -304,6 +296,83 @@ of~\cite{farmer2025}).  The language of $\SECFILE$ is the union of
 the languages of $\FILETYPE$ and $\PERM$, augmented with the
 constants $\perm$ and $\prot$.
 
+
+%----------------
+
+\newpage
+\section{Secured Files}
+\label{sec:secfiles}
+% ============================================================
+
+A \emph{secured file} is a file that has been assigned a permission
+level.  Formally, we construct the theory of secured files in two
+steps, following the theory-graph combinators of Chapter~14
+of~\cite{farmer2025}.
+
+First, let $\FILEPERM$ be the theory obtained by combining
+$\FILETYPE$ and $\PERM$ over a common trivial subtheory, as in the
+theory combination construction of Example~14.63
+of~\cite{farmer2025}.  Since $\FILETYPE$ and $\PERM$ have disjoint
+base types and disjoint constants, this combination is defined and
+yields a theory whose language is the union of the languages of
+$\FILETYPE$ and $\PERM$.  Thus $\FILEPERM$ contains the base types
+$N$, $C$, $F$, $P$ and the constants
+$\mkfile$, $\fname$, $\fcontent$,
+$\mName{noaccess}$, $\mName{rd}$, $\mName{wr}$, and
+$\mName{admin}$, together with all the axioms of both parent
+theories.
+
+Second, we define $\SECFILE$ as an ordinary theory extension of
+$\FILEPERM$, following the theory extension construction of
+Example~14.61 of~\cite{farmer2025}.  The only new symbols added are
+$\perm$ and $\prot$, which relate the inherited permission type $P$
+to the inherited file type $F$.
+
+\begin{theory-ext}
+{Secured Files}
+{$\SECFILE$.}
+{$\FILEPERM$.}
+{None.}
+{$\perm_{\cFunTyX{F}{P}}$,\;
+ $\prot_{\cFunTyBX{F}{P}{F}}$.}
+{
+\be
+\item $\cTotal{\perm}$
+      \hfill ($\perm$ is total).
+
+\item $\cTotalB{\prot}$
+      \hfill ($\prot$ is total).
+
+\item $\cForallBX{f}{F}{p}{P}{
+      \cEqX{\perm\;(\prot\;f\;p)}{p}}$
+      \hfill (protect sets permission).
+
+\item $\cForallBX{f}{F}{p}{P}{
+      \cEqX{\fname\;(\prot\;f\;p)}{\fname\;f}}$
+      \hfill (protect preserves name).
+
+\item $\cForallBX{f}{F}{p}{P}{
+      \cEqX{\fcontent\;(\prot\;f\;p)}{\fcontent\;f}}$
+      \hfill (protect preserves content).
+\ee
+}
+\end{theory-ext}
+
+\medskip
+\noindent\textbf{Explanation of the axioms.}
+Axiom~1 states that every file has an assigned permission.
+Axiom~2 ensures that applying a permission always succeeds.
+Axiom~3 defines the core semantics of $\prot$: after applying
+$\prot\;f\;p$, the permission of the resulting file is $p$.
+Axioms~4--5 guarantee that $\prot$ only changes the permission
+--- it does not alter the file's name or content.
+
+The theory $\SECFILE$ is therefore obtained by extending the
+combined theory $\FILEPERM$ with the constants $\perm$ and $\prot$
+and the five axioms above.  Its language contains all the symbols of
+$\FILETYPE$ and $\PERM$, together with the new constants
+$\perm$ and $\prot$.
+%------------------
 % ============================================================
 \newpage
 \section{Directories}
@@ -617,6 +686,136 @@ all theorems of $\FILETYPE$ transport to $\DIR$ under this
 morphism.  This confirms that single files embed faithfully into
 the directory structure.
 
+
+
+
+
+
+% ============================================================
+\newpage
+\section{Theory Morphism: Files to Directories}
+\label{sec:morphism}
+% ============================================================
+
+We exhibit a theory morphism from $\FILETYPE$ to $\DIR$ to
+demonstrate that individual files embed into the directory
+structure.  Intuitively, a single file $f$ corresponds to the
+one-entry directory $\mName{addfile}\;f\;\mName{emptydir}$.
+
+Since $\DIR$ extends $\SECFILE$, and $\SECFILE$ extends the
+combined theory $\FILEPERM$, the base types $N$, $C$, $F$ and the
+constants $\mkfile$, $\fname$, and $\fcontent$ from $\FILETYPE$
+are all available in the language of $\DIR$.  To obtain a
+well-formed theory translation in the sense of Chapter~14
+of~\cite{farmer2025}, we do \emph{not} map the source base type
+$F$ to the whole target type $D$.  Instead, we map $F$ to the
+closed quasitype of \emph{single-entry directories}:
+\[
+  \zeta_F \;=\;
+  \{\, d : D \mid \cForsomeX{f}{F}{
+      \cEqX{d}{\mName{addfile}\;f\;\mName{emptydir}}}\,\}.
+\]
+This is a closed quasitype of $\DIR$, and it captures exactly the
+image of the intended embedding of files into directories.
+
+To define the accessor translations, we use the fact that
+$\cInjB{\mName{addfile}}$ (Axiom~14) ensures that every
+$d \in \zeta_F$ contains a unique file.  Define the extraction
+function on $\zeta_F$ by:
+\[
+  \mName{extract}(d) \;=\;
+  \cDefDesX{f}{F}{
+    \cEqX{d}{\mName{addfile}\;f\;\mName{emptydir}}}.
+\]
+Because $d \in \zeta_F$, existence is guaranteed by definition of
+$\zeta_F$, and uniqueness follows from $\cInjB{\mName{addfile}}$.
+
+\begin{theory-trans-def}
+{Files to Single-Entry Directories}
+{$\mName{FILE\text{-}to\text{-}DIR}$.}
+{$\FILETYPE$.}
+{$\DIR$.}
+{%
+\begin{itemize}
+  \item[] $N \;\mapsto\; N$ \quad (names preserved)
+  \item[] $C \;\mapsto\; C$ \quad (contents preserved)
+  \item[] $F \;\mapsto\; \zeta_F$
+\end{itemize}
+}
+{%
+\begin{itemize}
+  \item[] $\mkfile_{N \to C \to F} \;\mapsto\;
+    \cFunAbsX{n}{N}{\cFunAbsX{c}{C}{
+      \mName{addfile}\;(\mkfile\;n\;c)\;\mName{emptydir}}}$
+
+  \item[] $\fname_{F \to N} \;\mapsto\;
+    \cFunAbsX{d}{D}{\fname\;(\mName{extract}(d))}$
+
+  \item[] $\fcontent_{F \to C} \;\mapsto\;
+    \cFunAbsX{d}{D}{\fcontent\;(\mName{extract}(d))}$
+\end{itemize}
+}
+\end{theory-trans-def}
+
+\medskip
+\noindent\textbf{Verification.}
+We must show that the image of each axiom of $\FILETYPE$ under this
+translation is valid in $\DIR$.
+
+\begin{enumerate}
+  \item \textbf{TOTAL2($\mkfile$).}
+    The translated constructor
+    $\cFunAbsX{n}{N}{\cFunAbsX{c}{C}{
+        \mName{addfile}\;(\mkfile\;n\;c)\;\mName{emptydir}}}$
+    is total because $\cTotalB{\mkfile}$ (Axiom~1 of $\FILETYPE$)
+    and $\cTotalB{\mName{addfile}}$ (Axiom~13 of $\DIR$) both hold.
+    Its values lie in $\zeta_F$ by construction.
+
+  \item \textbf{INJ2($\mkfile$).}
+    If $\mName{addfile}\;(\mkfile\;n_1\;c_1)\;\mName{emptydir}
+      =
+      \mName{addfile}\;(\mkfile\;n_2\;c_2)\;\mName{emptydir}$,
+    then $\mkfile\;n_1\;c_1 = \mkfile\;n_2\;c_2$ by
+    $\cInjB{\mName{addfile}}$ (Axiom~14), and hence
+    $n_1 = n_2$ and $c_1 = c_2$ by $\cInjB{\mkfile}$
+    (Axiom~2 of $\FILETYPE$).
+
+  \item \textbf{Accessor axioms (Axioms 3--4).}
+    Let $d = \mName{addfile}\;(\mkfile\;n\;c)\;\mName{emptydir}$.
+    Then $d \in \zeta_F$, so $\mName{extract}(d)$ is defined, and
+    by uniqueness of the definite description, $\mName{extract}(d) = \mkfile\;n\;c$.
+    Therefore $\fname\;(\mName{extract}(d))
+      = \fname\;(\mkfile\;n\;c) = n$
+    by Axiom~3 of $\FILETYPE$, and similarly 
+    $\fcontent\;(\mName{extract}(d))
+      = \fcontent\;(\mkfile\;n\;c) = c$
+    by Axiom~4.
+
+  \item \textbf{Totality of accessors (Axioms 5--6).}
+    The translated accessors are total on $\zeta_F$ because for each
+    $d \in \zeta_F$, the term $\mName{extract}(d)$ is defined, and
+    $\fname$ and $\fcontent$ are total on $F$ by Axioms~5--6 of
+    $\FILETYPE$.
+
+  \item \textbf{Surjectivity (Axiom 7).}
+    Let $d \in \zeta_F$.  Then, by definition of $\zeta_F$, there
+    exists $f : F$ such that 
+    $d = \mName{addfile}\;f\;\mName{emptydir}$.
+    By definition of $\mName{extract}$ and uniqueness,
+    $\mName{extract}(d)=f$.  Hence
+      $\mName{addfile}\;(\mkfile\;(\fname\;f)\;(\fcontent\;f))\;\mName{emptydir}
+      =
+      \mName{addfile}\;f\;\mName{emptydir}
+      = d$
+    by Axiom~7 of $\FILETYPE$.
+\end{enumerate}
+
+Thus the translation is well formed.  By the Morphism Theorem
+(Theorem~14.16 of~\cite{farmer2025}), all theorems of $\FILETYPE$
+transport to $\DIR$ under $\mName{FILE\text{-}to\text{-}DIR}$.
+This confirms that files embed faithfully into the substructure of
+single-entry directories of $\DIR$.
+
 % ============================================================
 \newpage
 \section{Examples}
@@ -775,22 +974,6 @@ The development forms a genuine graph (not a linear chain):
 $\PERM$ and $\FILETYPE$ are independent base theories that merge
 into $\SECFILE$, which is then extended to $\DIR$.
 
-\medskip
-\noindent\textbf{Lessons applied from Development Project~1.}
-This project incorporates the following corrections from the
-feedback on Development Project~1 (80/100):
-\begin{itemize}
-  \item All derived operations ($\mName{contains}$, $\mName{size}$)
-    are defined in a development definition using definite
-    descriptions, not introduced as theory extension constants
-    ($-16$ in Project~1 for this error).
-  \item Every definition is validated: the appendix proves that
-    the RHS of each Def is defined, showing both existence and
-    uniqueness ($-4$ in Project~1).
-  \item Every function has a TOTAL theorem.
-  \item All formulas have explicit type annotations on quantifiers
-    ($-2$ each in Project~1).
-\end{itemize}
 
 % ============================================================
 \appendix

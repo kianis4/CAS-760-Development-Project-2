@@ -368,6 +368,35 @@
   \vspace{0.2em}%
 }}\par\vspace{0.8em}%
 
+\noindent\colorbox{action}{\color{white}\parbox{\dimexpr\linewidth-2\fboxsep}{%
+  \vspace{0.2em}%
+  {\large\bfseries $\bigstar$\; TOP PRIORITY --- ALMOST CERTAIN FARMER ASKS THIS}\\[0.2em]%
+  {\small Farmer asked the previous group: ``Using Alonzo and the little-theories machinery, what \textbf{helped} and what \textbf{hurt}?'' --- rehearse this first.}%
+  \vspace{0.2em}%
+}}\par\vspace{0.6em}%
+
+\textit{\color{pauseclr}My short answer --- what helped:}
+\begin{say}
+``Honestly, the biggest win was the \textbf{little-theories method} itself. Instead of one giant theory doing everything, we broke the system into four small ones --- FILE, PERM, SECURED-FILE, DIRECTORY --- plus a development on top. Each piece was small enough to actually reason about on its own, and the theory-graph arrows made the dependencies obvious. The other thing that really helped was \textbf{Chapter 10's recipe} for inductive types --- it gave us a seven-item checklist to verify DIRECTORY is a proper recursive type, instead of us having to invent the proof strategy from scratch. And once Hamza's theory morphism is set up, the \textbf{Morphism Theorem} transports theorems between theories automatically --- so we don't have to re-prove anything we already proved in FILE.''
+\end{say}
+
+\textit{\color{pauseclr}My short answer --- what hurt:}
+\begin{say}
+``The hard parts were mostly about what Alonzo \textbf{doesn't} have. There's no pattern matching, no recursive-function keyword like you'd find in OCaml or Haskell --- so to define $\mathtt{contains}$ and $\mathtt{size}$, I had to write iota-terms and then \textbf{separately} prove existence and uniqueness in the appendix. That basically doubled the work for those definitions. The theory morphism was also trickier than I expected --- $\mathrm{extract}$ is only defined on single-entry directories, so we had to introduce a closed quasitype $\zeta_F$ to pin the domain down. And things that are obvious in a programming language --- like $\mathtt{size}\;d \geq 0$ --- still required structural induction, because Alonzo's $\mathbb{N}$ doesn't bake in non-negativity.''
+\end{say}
+
+\textit{\color{pauseclr}Deeper --- what helped, technically:}
+\begin{say}
+``Four things at a technical level. First, \textbf{conservative extension} --- theorems proved in FILE lift for free into SECURED-FILE and DIRECTORY along the extension arrows, so we never re-prove accessor or surjectivity properties. Second, the \textbf{Inductive Types Theorem} from Chapter 10 --- we discharged seven syntactic obligations and got $D \cong \mathrm{list}(F)$ in every standard model as a consequence, without needing a custom semantic argument. Third, \textbf{iota-terms} as the native way to introduce derived operations --- prove existence-and-uniqueness once, and the defined symbol behaves like any other Alonzo constant. And fourth, \textbf{quasitypes}, which let us restrict the theory morphism's source domain cleanly to exactly $\zeta_F$ without breaking anything.''
+\end{say}
+
+\textit{\color{pauseclr}Deeper --- what hurt, technically:}
+\begin{say}
+``Three main friction points. First, no fixpoint operator --- every recursive definition becomes an iota-term plus a validation proof, which roughly doubled the appendix. Second, the theory-translation machinery is strict about totality --- we had an earlier version of the morphism that mapped $F \mapsto D$, and only during review we realized that makes $\mathrm{fname}\circ\mathrm{extract}$ undefined on multi-entry directories. Fixing it required identifying the exact closed quasitype $\zeta_F$ where $\mathrm{extract}$ is total. And third, \textbf{scoping in the theory graph} --- choosing DIRECTORY's bottom theory as SECURED-FILE rather than FILE directly matters for what symbols are available inside $\mathrm{addfile}$'s type, and that kind of decision has non-obvious ripple effects downstream on the inductive-type obligations.''
+\end{say}
+
+\vspace{1em}
+
 \textbf{\color{slidebar}Q1. Why flat directories and not hierarchical?}
 
 \textit{\color{pauseclr}Plain:}
@@ -586,29 +615,6 @@
 \textit{\color{pauseclr}Technical:}
 \begin{say}
 ``Alonzo is a pure simple type theory --- there's no native $\mathrm{fix}$-operator or pattern-matching syntax. Recursive definitions are encoded as iota-terms asserting the existence of a unique function satisfying the recursion equations. The Inductive Types Theorem guarantees this function exists and is unique when the recursion is primitive-recursive over an inductive type --- which is exactly our case. The validation step in the appendix is discharging the existence-and-uniqueness obligation for each iota-term.''
-\end{say}
-
-\vspace{0.8em}
-\textbf{\color{slidebar}Q18. Using Alonzo and the little-theories machinery, what made the work easier --- and what made it harder?}
-
-\textit{\color{pauseclr}Plain --- what helped:}
-\begin{say}
-``The little-theories method really paid off for modularity. We broke the system into four small theories --- FILE, PERM, SECURED-FILE, DIRECTORY --- plus a development. Each piece was small enough to reason about in isolation, and the theory-graph arrows made the dependencies explicit. Chapter 10's inductive-type recipe gave us a clean checklist --- seven obligations to discharge --- rather than having to invent the verification argument from scratch. And the Morphism Theorem meant Hamza's FILE-to-DIR translation let us transport theorems between theories automatically, without re-proving them.''
-\end{say}
-
-\textit{\color{pauseclr}Plain --- what hurt:}
-\begin{say}
-``The things that were hard: Alonzo has no native pattern matching or built-in recursive-function syntax, so defining $\mathtt{contains}$ and $\mathtt{size}$ required writing iota-terms and separately proving existence and uniqueness --- much more ceremony than in a functional language. Handling undefinedness properly in the theory morphism was subtle --- we had to introduce a closed quasitype $\zeta_F$ to make $\mathrm{extract}$ total. And even obvious things, like $\mathtt{size}\;d \geq 0$, required structural induction, because Alonzo's $\mathbb{N}$ doesn't come with constructive non-negativity built in.''
-\end{say}
-
-\textit{\color{pauseclr}Technical --- what helped:}
-\begin{say}
-``Four things, concretely. (1) The little-theories method gave us \textbf{conservative extensions}: theorems proved in FILE transport automatically into SECURED-FILE and DIRECTORY along the extension arrows, so we don't re-prove name-extraction properties in each theory. (2) Chapter 10's Inductive Types Theorem let us hand off the heavy model-theoretic work --- we discharged seven syntactic obligations and got $D \cong \mathrm{list}(F)$ in every standard model for free. (3) The iota-operator let us define derived operations as total functions on their domain without writing explicit recursive clauses --- existence-and-uniqueness is proved once, and the defined symbol behaves like any other Alonzo constant. (4) Quasitypes handled the morphism domain restriction cleanly --- we pinned $F \mapsto \zeta_F$ instead of smuggling a partial function through the translation.''
-\end{say}
-
-\textit{\color{pauseclr}Technical --- what hurt:}
-\begin{say}
-``Three main sources of friction. (1) Alonzo lacks a fixpoint operator, so every recursive definition requires a separate validation proof --- we can't just write $\mathtt{size}\;(\mathrm{addfile}\;f\;d) = \mathtt{size}\;d + 1$ as a definitional equation; we have to write the iota-term and discharge existence-and-uniqueness. This roughly doubled the appendix size. (2) The theory-translation machinery is unforgiving about partial functions --- $\mathrm{extract}$ is only defined on single-entry directories, and we couldn't just let the translation be partial; we had to identify exactly the closed quasitype $\zeta_F$ where it's total. Getting that right took several iterations. (3) Scoping: choosing DIRECTORY's bottom theory correctly (SECURED-FILE, not FILE) matters for what symbols are in scope inside $\mathrm{addfile}$'s type, and that interacts with the inductive-type obligations in non-obvious ways --- a small change in the theory graph ripples through the appendix.''
 \end{say}
 
 \end{document}

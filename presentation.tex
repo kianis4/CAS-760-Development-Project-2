@@ -431,16 +431,30 @@ Thus $d$ is a flat directory with exactly two file entries.
 
 \begin{frame}[fragile]{Theory Translation}
 \small
-To define the accessor translations, we use the fact that
-$\cInjB{\mName{addfile}}$ allows us to extract the unique file from
-a single-entry directory. Define:
+
+To obtain a well-formed theory translation, we map
+it to the closed quasitype of single-entry directories:
 \[
-  \mName{extract}_{\cFunTyX{D}{F}} \;=\;
-  \cFunAbsX{d}{D}{\cDefDesX{f}{F}{
-    \cEqX{d}{\mName{addfile}\;f\;\mName{emptydir}}}}
+  \zeta_F \;=\;
+  \{\, d : D \mid \cForsomeX{f}{F}{
+      \cEqX{d}{\mName{addfile}\;f\;\mName{emptydir}}}\,\}.
 \]
 
 \medskip
+
+For each $d \in \zeta_F$, define:
+\[
+  \mName{extract}(d) \;=\;
+  \cDefDesX{f}{F}{
+    \cEqX{d}{\mName{addfile}\;f\;\mName{emptydir}}}.
+\]
+
+\medskip
+
+\end{frame}
+
+\begin{frame}[fragile]{Theory Translation (Cont'd)}
+\small
 
 \textbf{Name:} $\mName{FILE\text{-}to\text{-}DIR}$
 
@@ -452,7 +466,7 @@ a single-entry directory. Define:
 \begin{itemize}
   \item[] $N \;\mapsto\; N$ \quad (names preserved)
   \item[] $C \;\mapsto\; C$ \quad (contents preserved)
-  \item[] $F \;\mapsto\; D$
+  \item[] $F \;\mapsto\; \zeta_F$
 \end{itemize}
 
 \textbf{Constants mapping:}
@@ -461,17 +475,19 @@ a single-entry directory. Define:
     \cFunAbsX{n}{N}{\cFunAbsX{c}{C}{
       \mName{addfile}\;(\mkfile\;n\;c)\;\mName{emptydir}}}$
   \item[] $\fname_{F \to N} \;\mapsto\;
-    \cFunAbsX{d}{D}{\fname\;(\mName{extract}\;d)}$
+    \cFunAbsX{d}{D}{\fname\;(\mName{extract}(d))}$
   \item[] $\fcontent_{F \to C} \;\mapsto\;
-    \cFunAbsX{d}{D}{\fcontent\;(\mName{extract}\;d)}$
+    \cFunAbsX{d}{D}{\fcontent\;(\mName{extract}(d))}$
 \end{itemize}
-
 
 \end{frame}
 
 \begin{frame}{Verification of the Morphism}
 \small
-Key observation: on single-entry directories,
+
+Key observation: if $d \in \zeta_F$, then $d$ has the form
+$\mName{addfile}\;f\;\mName{emptydir}$ for a unique $f : F$.
+Hence
 \[
 \mName{extract}\;(\mName{addfile}\;f\;\mName{emptydir}) = f
 \]
@@ -479,17 +495,21 @@ by uniqueness of the definite description and injectivity of
 $\mName{addfile}$.
 
 \medskip
-Hence:
+Therefore:
 \begin{itemize}
   \item TOTAL2($\mkfile$) maps to totality of the translated constructor;
   \item INJ2($\mkfile$) maps to injectivity;
   \item the accessor axioms for $\fname$ and $\fcontent$ are preserved;
+  \item totality of the translated accessors holds on $\zeta_F$;
   \item surjectivity is preserved on the embedded image.
 \end{itemize}
 
 \medskip
-By the Morphism Theorem, theorems of $\FILETYPE$ transport to $\DIR$.
+Thus the translation is well formed. By the Morphism Theorem,
+theorems of $\FILETYPE$ transport to $\DIR$ under
+$\mName{FILE\text{-}to\text{-}DIR}$.
 \end{frame}
+
 
 % ============================================================
 \section{Conclusion}

@@ -364,49 +364,251 @@
 \noindent\colorbox{slidebar}{\color{white}\parbox{\dimexpr\linewidth-2\fboxsep}{%
   \vspace{0.2em}%
   {\Large\bfseries Q\&A PREP $\cdot$ Likely Questions}\\[0.2em]%
-  {\small rehearse these --- one of them almost certainly comes up}%
+  {\small each answer has a \textbf{plain} short form and a \textbf{technical} follow-up --- lead with plain, switch to technical if they push for depth}%
   \vspace{0.2em}%
 }}\par\vspace{0.8em}%
 
 \textbf{\color{slidebar}Q1. Why flat directories and not hierarchical?}
 
+\textit{\color{pauseclr}Plain:}
 \begin{say}
-``Scope --- the project name says \textbf{simple} file system. Flat keeps the inductive type within the standard fourth-kind constructor pattern of Chapter 10, preserves the direct list analogy, and makes the FILE-to-DIR morphism clean because single-entry directories give a canonical target for the embedding. Hierarchy would require a second recursive constructor $\mathrm{adddir} : D \to D \to D$, which breaks the clean list analogy and makes the morphism extraction ambiguous. We note hierarchy as future work in the paper.''
+``The project is called a \textbf{simple} file system. Flat means a directory is just a list of files --- like a shopping list. Hierarchical would mean folders inside folders, which is out of scope for this project.''
+\end{say}
+
+\textit{\color{pauseclr}Technical:}
+\begin{say}
+``Flat keeps the inductive type within the standard fourth-kind constructor pattern of Chapter 10. It preserves the direct list analogy --- $\mathrm{emptydir}$ is $\mathrm{nil}$, $\mathrm{addfile}$ is $\mathrm{cons}$ --- and it makes the FILE-to-DIR morphism clean because single-entry directories give a canonical embedding target. Hierarchy would require a second recursive constructor $\mathrm{adddir} : D \to D \to D$, which breaks the list analogy and makes $\mathrm{extract}$ ambiguous on non-leaf branches. We note hierarchy as future work.''
 \end{say}
 
 \vspace{0.8em}
 \textbf{\color{slidebar}Q2. Why are \texttt{contains} and \texttt{size} in a development instead of extending DIRECTORY?}
 
+\textit{\color{pauseclr}Plain:}
 \begin{say}
-``Because they're \textbf{derived} operations --- they're definable from the primitives $\mathrm{addfile}$ and $\mathrm{emptydir}$, so postulating them as theory constants would add redundant axioms. The development framework lets us define them once, prove they exist uniquely, and then use them. In Project 1 we put derived operations into theory extensions and lost points for it --- this is the direct correction.''
+``Because we can \textbf{define} them from the primitives we already have. If we added them as new theory constants, we'd be postulating things we can already prove --- that's redundant, and axiomatically wasteful.''
+\end{say}
+
+\textit{\color{pauseclr}Technical:}
+\begin{say}
+``$\mathtt{contains}$ and $\mathtt{size}$ are \textbf{derived} operations, definable from $\mathrm{addfile}$ and $\mathrm{emptydir}$ via iota-terms. Putting them in DIRECTORY as primitives would enlarge the theory's signature and require new axioms for properties we already prove from Axioms 13--16. The development framework lets us define via $\iota$, discharge existence-and-uniqueness once, and use the symbol freely --- without expanding the theory. In Project 1 we made the opposite mistake and lost points; this is the direct correction.''
 \end{say}
 
 \vspace{0.8em}
 \textbf{\color{slidebar}Q3. How did you verify the DIRECTORY obligations?}
 
+\textit{\color{pauseclr}Plain:}
 \begin{say}
-``All seven obligations from Chapter 10 of Farmer's textbook --- non-empty quasitypes, totality on domain, injectivity, disjointness of ranges, structural induction. Each one discharges directly from one of our four axioms, Axioms 13 through 16, with the non-emptiness obligation for the $F$-argument holding because $F$ is a base type and every base type is inhabited in any Alonzo frame. The full check is in the paper.''
+``Chapter 10 of Farmer's book gives a checklist for what makes something a valid inductive type. We went through each item and showed our axioms satisfy it.''
+\end{say}
+
+\textit{\color{pauseclr}Technical:}
+\begin{say}
+``All seven obligations: non-empty quasitypes for each constructor argument, totality of each constructor, injectivity of each non-nullary constructor, disjointness of ranges between constructors, and structural induction. Each discharges from our four axioms --- Axiom 13 covers totality of $\mathrm{addfile}$, Axiom 14 injectivity, Axiom 15 the disjointness of $\mathrm{addfile}$'s range from $\mathrm{emptydir}$, and Axiom 16 structural induction. The non-emptiness obligation for the $F$-argument holds because $F$ is a base type and every base type is inhabited in any Alonzo frame. The disjoint-ranges obligation between multiple non-nullary constructors is trivial since we only have one. Full check is in the appendix.''
 \end{say}
 
 \vspace{0.8em}
 \textbf{\color{slidebar}Q4. What if two files in a directory have the same name?}
 
+\textit{\color{pauseclr}Plain:}
 \begin{say}
-``They're allowed. The inductive type doesn't enforce uniqueness --- you can have two $\mathrm{addfile}$ applications with files sharing a name. $\mathtt{contains}$ would just return true if \textbf{any} match is found. A future extension could add a uniqueness invariant, but that's a development-layer property, not a theory-layer one.''
+``Nothing prevents it. The theory allows duplicates. $\mathtt{contains}$ just returns true as soon as it finds any match.''
+\end{say}
+
+\textit{\color{pauseclr}Technical:}
+\begin{say}
+``The inductive type $D$ has no uniqueness invariant --- two $\mathrm{addfile}$ applications can wrap files with identical names because $\mathrm{addfile}$ is only required to be injective on its pair of arguments, not on file names. $\mathtt{contains}\; n\; d$ is an existential predicate --- it reports \emph{at least one} match. Adding name-uniqueness would be a development-layer invariant --- a provable predicate over $d$ --- not a theory-layer axiom. That's reasonable future work.''
 \end{say}
 
 \vspace{0.8em}
 \textbf{\color{slidebar}Q5. Why use $K_D$ for the constructor set?}
 
+\textit{\color{pauseclr}Plain:}
 \begin{say}
-``Standard inductive-type convention --- $K$ for \textit{Konstruktor}, subscripted by the type. The subscript makes it unambiguous which type's constructors we mean, and it avoids clashing with the base type $C$ of FILE.''
+``It's just notation. $K$ stands for \textit{Konstruktor} --- the German word for constructor --- and the subscript says which type's constructors we're talking about.''
+\end{say}
+
+\textit{\color{pauseclr}Technical:}
+\begin{say}
+``Standard Chapter 10 convention. $K$ for \textit{Konstruktor}, subscripted by the inductive type to disambiguate when multiple types are in play. Subscript $D$ avoids clashing with the base type $C$ of FILE, and lets us distinguish $K_D$ from, say, the implicit constructor set of $F$ which is just $\{\mathrm{mkfile}\}$.''
 \end{say}
 
 \vspace{0.8em}
 \textbf{\color{slidebar}Q6. What does ``pushout-style construction'' mean?}
 
+\textit{\color{pauseclr}Plain:}
 \begin{say}
-``It's a way of combining two theories that share no non-trivial sub-theory. SECURED-FILE takes FILE and PERM as inputs and produces a new theory whose language is the union of both, augmented with the new constants $\mathrm{perm}$ and $\mathrm{protect}$. The category-theoretic term is a pushout over the empty theory. In Alonzo's little theories method, we encode it by having SECURED-FILE extend both parents simultaneously, which is what the two arrows in our theory graph represent.''
+``It's a way to combine two theories that don't overlap, then add new things on top. FILE and PERM don't share anything, so we just glue them together and add the two new constants $\mathrm{perm}$ and $\mathrm{protect}$.''
+\end{say}
+
+\textit{\color{pauseclr}Technical:}
+\begin{say}
+``Category-theoretic term for the colimit of two objects over a shared sub-object. Here the shared sub-theory is essentially empty --- FILE and PERM have disjoint signatures --- so the pushout is just their disjoint union extended with the new SECURED-FILE constants and axioms. In the little-theories graph, we encode this by having SECURED-FILE extend \emph{both} parents simultaneously --- the two arrows from FILE and PERM into SECURED-FILE in our theory graph are exactly those two extension morphisms. Semantically: the language of SECURED-FILE is $\Sigma_{\mathrm{FILE}} \cup \Sigma_{\mathrm{PERM}} \cup \{\mathrm{perm}, \mathrm{protect}\}$.''
+\end{say}
+
+\vspace{0.8em}
+\textbf{\color{slidebar}Q7. What is Alonzo?}
+
+\textit{\color{pauseclr}Plain:}
+\begin{say}
+``It's Dr. Farmer's name for a specific version of Church's simple type theory --- a logic for reasoning about typed functions. It's the system the whole course is built on.''
+\end{say}
+
+\textit{\color{pauseclr}Technical:}
+\begin{say}
+``Alonzo is a Church-style simple type theory defined in Farmer's textbook. Key features: a hierarchy of types built over base types and function arrows; the iota-operator for definite descriptions; quasitypes for expressing subtype-like constraints without full dependent types; a well-defined treatment of undefinedness via the frame definition; and a proof-theoretic system that makes the \textbf{little theories method} tractable --- you build a graph of small theories connected by extensions and translations, and transport theorems along the arrows.''
+\end{say}
+
+\vspace{0.8em}
+\textbf{\color{slidebar}Q8. What's the difference between a theory extension and a development?}
+
+\textit{\color{pauseclr}Plain:}
+\begin{say}
+``An extension adds new \textbf{primitives} --- new base types, constants, and axioms. A development only adds \textbf{definitions and theorems} --- things you can already prove from the theory below it. A development can never introduce a new axiom.''
+\end{say}
+
+\textit{\color{pauseclr}Technical:}
+\begin{say}
+``An extension $T' \supseteq T$ enlarges the signature (new base types and/or constants) and the axiom set --- strictly more primitive symbols and assumptions. A development $\Delta$ over a \emph{bottom theory} $T$ is a sequence of definitions (iota-term abbreviations with discharged existence-and-uniqueness) and theorems provable from $T$'s axioms alone. Crucially: everything in $\Delta$ is conservative over $T$ --- no new axioms, no new primitive symbols. That's the reason $\mathtt{contains}$ and $\mathtt{size}$ belong in DIR-DEV, not in a DIRECTORY-prime extension.''
+\end{say}
+
+\vspace{0.8em}
+\textbf{\color{slidebar}Q9. Why does injectivity of $\mathrm{addfile}$ matter?}
+
+\textit{\color{pauseclr}Plain:}
+\begin{say}
+``It means different inputs give different outputs --- no two calls to $\mathrm{addfile}$ with different arguments can produce the same directory. That's what lets Hamza's theory morphism pull the unique file back out of a single-entry directory.''
+\end{say}
+
+\textit{\color{pauseclr}Technical:}
+\begin{say}
+``Axiom 14 is injectivity of $\mathrm{addfile}$ on its pair of arguments $(f, d)$. In Hamza's morphism section, $\mathrm{extract}$ is defined as an iota-term --- the unique $f : F$ such that $d = \mathrm{addfile}\; f\; \mathrm{emptydir}$. Without injectivity, multiple $f$-values could satisfy that equation, and the iota-term would be undefined. Injectivity is exactly what makes $\mathrm{extract}$ total on the closed quasitype $\zeta_F$ of single-entry directories, which is the domain that makes the FILE-to-DIR translation well-formed.''
+\end{say}
+
+\vspace{0.8em}
+\textbf{\color{slidebar}Q10. What is a definite description (iota-term)?}
+
+\textit{\color{pauseclr}Plain:}
+\begin{say}
+``It's the expression ``\textit{the unique $x$ such that $P(x)$}.'' You say what property you want, and if exactly one thing satisfies it, the iota-term denotes that thing. If zero or multiple things satisfy it, the term is undefined.''
+\end{say}
+
+\textit{\color{pauseclr}Technical:}
+\begin{say}
+``In Alonzo, $\iota x : A.\; P(x)$ denotes the unique element of type $A$ satisfying predicate $P$ when such an element exists and is unique; otherwise the term is undefined. We use iota-terms to define $\mathtt{contains}$ and $\mathtt{size}$ via recursion schemes: the definition says \emph{``the unique function $g$ satisfying these two recursion clauses.''} The validation step proves existence and uniqueness, which licenses the iota-term as a legal abbreviation. In Hamza's section, $\mathrm{extract}\;d = \iota f : F.\; d = \mathrm{addfile}\;f\;\mathrm{emptydir}$, which is total exactly on $\zeta_F$.''
+\end{say}
+
+\vspace{0.8em}
+\textbf{\color{slidebar}Q11. How does structural induction work here (Axiom 16)?}
+
+\textit{\color{pauseclr}Plain:}
+\begin{say}
+``To prove something is true for \textbf{every} directory, we only need to check two cases: it's true for the empty directory, and if it's true for $d$, then it's true for $\mathrm{addfile}\;f\;d$ too. Axiom 16 says that's enough.''
+\end{say}
+
+\textit{\color{pauseclr}Technical:}
+\begin{say}
+``Axiom 16 is the induction principle for $D$: for any predicate $p : D \to \mathbb{B}$, if $p\;\mathrm{emptydir}$ holds and $p\;d \Rightarrow p\;(\mathrm{addfile}\;f\;d)$ for all $f:F, d:D$, then $p\;d$ holds for every $d:D$. It's what lets us prove Theorem 6 (size non-negativity) from Theorem 4 (base case) and Theorem 5 (the recurrence). It's also the 7th inductive-type obligation --- without it, $D$ wouldn't be recognized as a proper recursive inductive type by the Inductive Types Theorem.''
+\end{say}
+
+\vspace{0.8em}
+\textbf{\color{slidebar}Q12. Why model directories as an inductive type (instead of just reusing the textbook's list type)?}
+
+\textit{\color{pauseclr}Plain:}
+\begin{say}
+``Because a directory isn't \emph{any} list --- it's a list of \emph{files} specifically, which are built on top of our SECURED-FILE theory. Inductive-typing $D$ directly in our theory graph keeps everything self-contained and lets us prove directory-specific theorems without importing the generic list theory.''
+\end{say}
+
+\textit{\color{pauseclr}Technical:}
+\begin{say}
+``Two reasons. First, pedagogical: the assignment asks us to define a recursive data type \emph{in Alonzo}, and going through Chapter 10's constructor-set formalism --- $K_D$, the seven obligations, the Inductive Types Theorem --- is exactly the exercise. Second, theoretical: by axiomatizing $D$ directly in DIRECTORY rather than deriving it as $\mathrm{list}(F)$, we get $\mathrm{emptydir}$ and $\mathrm{addfile}$ as primitive constants of our theory, which makes Hamza's FILE-to-DIR morphism a translation within our own graph, not a cross-reference to an external list theory. The Inductive Types Theorem still gives us $D \cong \mathrm{list}(F)$ in every standard model --- we get the list isomorphism as a \emph{consequence}, not an assumption.''
+\end{say}
+
+\vspace{0.8em}
+\textbf{\color{slidebar}Q13. Why have SECURED-FILE as a separate theory instead of baking permissions into FILE?}
+
+\textit{\color{pauseclr}Plain:}
+\begin{say}
+``Separation of concerns. FILE is about the structure of a file --- name plus content. PERM is about permission levels. If we baked permissions into FILE, we'd lose the ability to reason about unsecured files, and we'd violate the little-theories principle of keeping each theory as small as possible.''
+\end{say}
+
+\textit{\color{pauseclr}Technical:}
+\begin{say}
+``The little-theories method says: each theory should axiomatize exactly one concept. FILE axiomatizes the abstract file record; PERM axiomatizes permission levels; SECURED-FILE is their \emph{joint extension} that adds the connection between them. This gives us three benefits. One: FILE is reusable in contexts that don't care about permissions. Two: the theory graph encodes the dependency structure explicitly --- anyone reading it sees that permissions are an added concern, not fundamental to files. Three: theorems proved in FILE transport \emph{automatically} into SECURED-FILE via the extension arrow, so we don't re-prove them.''
+\end{say}
+
+\vspace{0.8em}
+\textbf{\color{slidebar}Q14. Why does DIRECTORY extend SECURED-FILE and not FILE directly?}
+
+\textit{\color{pauseclr}Plain:}
+\begin{say}
+``Because in our file system, \emph{every} file in a directory has a permission attached. If DIRECTORY extended FILE instead, we'd have files without permissions appearing in directories, which doesn't model what we want.''
+\end{say}
+
+\textit{\color{pauseclr}Technical:}
+\begin{say}
+``DIRECTORY's $\mathrm{addfile}$ has signature $F \to D \to D$, and $F$ lives in DIRECTORY's language via the extension arrow from its bottom theory. Since DIRECTORY extends SECURED-FILE, the $F$ in scope is the permission-enriched FILE type --- every file that $\mathrm{addfile}$ can wrap has a permission accessible via $\mathrm{perm}$. If DIRECTORY extended FILE, the $F$ would be plain FILE without $\mathrm{perm}$ or $\mathrm{protect}$, and we couldn't write security-sensitive operations at the directory level. The theory graph exactly models the real-world constraint that file-system directories contain secured files.''
+\end{say}
+
+\vspace{0.8em}
+\textbf{\color{slidebar}Q15. Why are the base types $N$, $C$, $F$, $P$ abstract instead of concrete (strings, bytes)?}
+
+\textit{\color{pauseclr}Plain:}
+\begin{say}
+``Because we want the theory to describe \emph{any} file system, not just one with a specific choice of name format or content type. Abstraction lets us capture the structural properties without being tied to a representation.''
+\end{say}
+
+\textit{\color{pauseclr}Technical:}
+\begin{say}
+``This is the standard little-theories approach: axiomatize the minimum. By leaving $N$, $C$, $F$, $P$ as base types, our axioms express the \emph{structural} relationships --- totality, injectivity, accessor-constructor coherence, surjectivity --- that any concrete instantiation must satisfy. A user who wants strings-as-names and bytes-as-content builds a theory translation from FILE into that concrete setting; our theorems transport along it via the Morphism Theorem. Making the types concrete would bind the theory to one representation and break reusability.''
+\end{say}
+
+\vspace{0.8em}
+\textbf{\color{slidebar}Q16. Why does FILE have a surjectivity axiom (Axiom 7)?}
+
+\textit{\color{pauseclr}Plain:}
+\begin{say}
+``Because without it, there could be files in $F$ that weren't \emph{built} by $\mathrm{mkfile}$ --- phantom files floating around. Surjectivity says every file $f$ equals $\mathrm{mkfile}$ applied to its own name and content, so nothing extra exists.''
+\end{say}
+
+\textit{\color{pauseclr}Technical:}
+\begin{say}
+``Axiom 7 --- $\forall f : F.\; f = \mathrm{mkfile}\;(\mathrm{fname}\;f)\;(\mathrm{fcontent}\;f)$ --- closes the loop between the accessors and the constructor. Without it, the accessor axioms (3 and 4) only constrain $F$ on the image of $\mathrm{mkfile}$; surjectivity says the image is \emph{all} of $F$. Combined with totality (1) and injectivity (2), it gives us $F \cong N \times C$ as a bijection in every standard model, not just an injection. That's what lets us treat $F$ as a record type rather than just an opaque set of things with name-and-content accessors.''
+\end{say}
+
+\vspace{0.8em}
+\textbf{\color{slidebar}Q17. Why did you use iota-terms (definite descriptions) for $\mathtt{contains}$ and $\mathtt{size}$ instead of explicit recursion?}
+
+\textit{\color{pauseclr}Plain:}
+\begin{say}
+``Alonzo doesn't have built-in pattern-matching or recursive-function syntax like a programming language. Iota-terms are the standard way to name the unique function satisfying a given recursion --- and the Inductive Types Theorem guarantees that unique function exists.''
+\end{say}
+
+\textit{\color{pauseclr}Technical:}
+\begin{say}
+``Alonzo is a pure simple type theory --- there's no native $\mathrm{fix}$-operator or pattern-matching syntax. Recursive definitions are encoded as iota-terms asserting the existence of a unique function satisfying the recursion equations. The Inductive Types Theorem guarantees this function exists and is unique when the recursion is primitive-recursive over an inductive type --- which is exactly our case. The validation step in the appendix is discharging the existence-and-uniqueness obligation for each iota-term.''
+\end{say}
+
+\vspace{0.8em}
+\textbf{\color{slidebar}Q18. Using Alonzo and the little-theories machinery, what made the work easier --- and what made it harder?}
+
+\textit{\color{pauseclr}Plain --- what helped:}
+\begin{say}
+``The little-theories method really paid off for modularity. We broke the system into four small theories --- FILE, PERM, SECURED-FILE, DIRECTORY --- plus a development. Each piece was small enough to reason about in isolation, and the theory-graph arrows made the dependencies explicit. Chapter 10's inductive-type recipe gave us a clean checklist --- seven obligations to discharge --- rather than having to invent the verification argument from scratch. And the Morphism Theorem meant Hamza's FILE-to-DIR translation let us transport theorems between theories automatically, without re-proving them.''
+\end{say}
+
+\textit{\color{pauseclr}Plain --- what hurt:}
+\begin{say}
+``The things that were hard: Alonzo has no native pattern matching or built-in recursive-function syntax, so defining $\mathtt{contains}$ and $\mathtt{size}$ required writing iota-terms and separately proving existence and uniqueness --- much more ceremony than in a functional language. Handling undefinedness properly in the theory morphism was subtle --- we had to introduce a closed quasitype $\zeta_F$ to make $\mathrm{extract}$ total. And even obvious things, like $\mathtt{size}\;d \geq 0$, required structural induction, because Alonzo's $\mathbb{N}$ doesn't come with constructive non-negativity built in.''
+\end{say}
+
+\textit{\color{pauseclr}Technical --- what helped:}
+\begin{say}
+``Four things, concretely. (1) The little-theories method gave us \textbf{conservative extensions}: theorems proved in FILE transport automatically into SECURED-FILE and DIRECTORY along the extension arrows, so we don't re-prove name-extraction properties in each theory. (2) Chapter 10's Inductive Types Theorem let us hand off the heavy model-theoretic work --- we discharged seven syntactic obligations and got $D \cong \mathrm{list}(F)$ in every standard model for free. (3) The iota-operator let us define derived operations as total functions on their domain without writing explicit recursive clauses --- existence-and-uniqueness is proved once, and the defined symbol behaves like any other Alonzo constant. (4) Quasitypes handled the morphism domain restriction cleanly --- we pinned $F \mapsto \zeta_F$ instead of smuggling a partial function through the translation.''
+\end{say}
+
+\textit{\color{pauseclr}Technical --- what hurt:}
+\begin{say}
+``Three main sources of friction. (1) Alonzo lacks a fixpoint operator, so every recursive definition requires a separate validation proof --- we can't just write $\mathtt{size}\;(\mathrm{addfile}\;f\;d) = \mathtt{size}\;d + 1$ as a definitional equation; we have to write the iota-term and discharge existence-and-uniqueness. This roughly doubled the appendix size. (2) The theory-translation machinery is unforgiving about partial functions --- $\mathrm{extract}$ is only defined on single-entry directories, and we couldn't just let the translation be partial; we had to identify exactly the closed quasitype $\zeta_F$ where it's total. Getting that right took several iterations. (3) Scoping: choosing DIRECTORY's bottom theory correctly (SECURED-FILE, not FILE) matters for what symbols are in scope inside $\mathrm{addfile}$'s type, and that interacts with the inductive-type obligations in non-obvious ways --- a small change in the theory graph ripples through the appendix.''
 \end{say}
 
 \end{document}

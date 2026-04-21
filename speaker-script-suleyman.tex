@@ -85,15 +85,15 @@
 
 \begin{minipage}{0.75\textwidth}
 \textbf{Target timing:} $\sim$7 minutes total, $\sim$60 seconds per slide.\\[0.6em]
-\textbf{My slides, in order:}
+\textbf{My slides, in order (deck slides 8--14):}
 \begin{enumerate}[leftmargin=2em,itemsep=0.2em]
-  \item Files --- Theory \textsc{FILE}
-  \item Secured Files --- Theory Extension \textsc{SECURED-FILE}
-  \item Directories --- Theory Extension \textsc{DIRECTORY}
+  \item Theory for Files --- \textsc{FILE}
+  \item Theory Extension for Secured Files --- \textsc{SECURED-FILE}
+  \item Theory Extension for Directories --- \textsc{DIRECTORY}
   \item Directories as an Inductive Type
-  \item Directory Development --- \textsc{DIR-DEV}
-  \item Definition of \texttt{contains}
-  \item Definition of \texttt{size}
+  \item Directory Development --- \textsc{DIR-DEV} (both \texttt{contains} and \texttt{size} defined here)
+  \item Explanation for Directory Development
+  \item Example of Directory Evaluation (handoff to Hamza)
 \end{enumerate}
 
 \vspace{1.5em}
@@ -114,7 +114,7 @@
 % ============================================================
 \slidehd{1}{Files --- Theory \textsc{FILE}}{$\sim$70 sec}
 
-\onscreen{Base types $N, C, F$. Constants $\mathrm{mkfile}, \mathrm{fname}, \mathrm{fcontent}$ with types. Five key axioms listed.}
+\onscreen{Base types $N, C, F$. Constants $\mathrm{mkfile}, \mathrm{fname}, \mathrm{fcontent}$ with types. Seven axioms (1--7) listed.}
 
 \begin{say}
 ``Thanks Hamza. Now I'll walk through the Files theory.''
@@ -148,7 +148,7 @@
 \end{say}
 
 \begin{say}
-``The axioms say what you'd expect. $\mathrm{mkfile}$ is total and injective --- every name-content pair gives a valid file, and distinct pairs give distinct files. The two accessor axioms say that if you build a file with $\mathrm{mkfile}\; n\; c$, extracting the name gives you $n$ back, and the content gives you $c$. And the last axiom --- surjectivity --- says that every file $f$ is equal to $\mathrm{mkfile}$ applied to its own name and content. That closes the loop: $F$ is isomorphic to $N \times C$, but presented abstractly as a theory.''
+``The axioms say what you'd expect. Axioms 1 and 2: $\mathrm{mkfile}$ is total and injective --- every name-content pair gives a valid file, and distinct pairs give distinct files. Axioms 3 and 4 are the two accessor axioms: if you build a file with $\mathrm{mkfile}\; n\; c$, extracting the name gives you $n$ back, and the content gives you $c$. Axioms 5 and 6 say the accessors are themselves total. And Axiom 7 --- surjectivity --- says every file $f$ is equal to $\mathrm{mkfile}$ applied to its own name and content. That closes the loop: $F$ is isomorphic to $N \times C$, but presented abstractly as a theory.''
 \end{say}
 
 \transact{advance to Secured Files slide.}
@@ -265,144 +265,99 @@
 \transact{advance to DIR-DEV intro slide.}
 
 % ============================================================
-\slidehd{5}{Directory Development --- \textsc{DIR-DEV}}{$\sim$55 sec}
+\slidehd{5}{Directory Development --- \textsc{DIR-DEV}}{$\sim$90 sec}
 
-\onscreen{``Derived operations in a \textit{development}, not as primitive theory constants.'' Three-bullet list: define via $\iota$-term, validate, prove properties.}
-
-\begin{say}
-``DIR-DEV is a \textbf{development} over DIRECTORY, not another theory extension. This distinction matters.''
-\end{say}
+\onscreen{Name: DIR-DEV. Bottom theory: DIR. Def 1 ($\mathrm{contains}$) with Thms 1--2. Def 2 ($\mathrm{size}$) with Thms 3--6. All on one slide.}
 
 \begin{say}
-``A development contains \textbf{derived} operations --- things like size and containment that are definable from the primitives. In Project 1 we made the mistake of putting derived operations into theory extensions as primitive constants, and we lost points for it.''
+``DIR-DEV is a \textbf{development} over DIRECTORY --- not another theory extension. That matters because $\mathtt{contains}$ and $\mathtt{size}$ are \textbf{derived} operations, definable from $\mathrm{addfile}$ and $\mathrm{emptydir}$. So we \textbf{prove} they exist rather than postulating them as new theory constants. In Project 1 we lost points for making the opposite mistake --- this is the direct correction.''
 \end{say}
-\act{Slight pause; this sentence earns goodwill by showing we learned from prior feedback.}
-\begin{say}
-``The lesson is that derived operations should be \textbf{proved to exist}, not postulated.''
-\end{say}
+\act{Brief pause on the "lesson learned" beat --- earns goodwill.}
 
 \begin{say}
-``So in DIR-DEV we do three things for each operation.''
-\end{say}
-\act{Point to the three bullets on the slide as you list them.}
-\begin{say}
-``First, we define the operation using a \textbf{definite description} --- that is, an iota-term of the form \textit{the unique function satisfying a recursion}. Second, we \textbf{validate} the definition by proving existence and uniqueness separately. And third, we prove \textbf{totality} and any algebraic properties we need as theorems.''
+``The slide gives both definitions and all six theorems. I'll walk through them.''
 \end{say}
 
+\act{Point to Def 1 ($\mathtt{contains}$) on the slide.}
 \begin{say}
-``We do this for two operations in the paper: $\mathtt{contains}$, which checks whether a given name is present in a directory, and $\mathtt{size}$, which counts the number of files. I'll walk through both.''
+``Def 1: $\mathtt{contains}$ of type $N \to D \to \mathbb{B}$. Defined as the unique function $g$ satisfying two recursion clauses --- $g\; n\; \mathrm{emptydir}$ is false, and $g\; n\; (\mathrm{addfile}\; f\; d)$ is true if $\mathrm{fname}\; f$ equals $n$, or if $g\; n\; d$ is already true. So $\mathtt{contains}$ either matches the outermost file's name, or recurses into the tail.''
 \end{say}
 
-\transact{advance to \texttt{contains} definition slide.}
+\act{Move pointer to Thms 1--2.}
+\begin{say}
+``Theorem 1 says $\mathtt{contains}$ is total. Theorem 2 says the empty directory contains no name.''
+\end{say}
+
+\pauseact
+
+\act{Point to Def 2 ($\mathtt{size}$) on the slide.}
+\begin{say}
+``Def 2: $\mathtt{size}$ of type $D \to \mathbb{N}$. Same iota-term pattern --- $g\; \mathrm{emptydir}$ equals zero, and $g\; (\mathrm{addfile}\; f\; d)$ equals $g\; d$ plus one.''
+\end{say}
+
+\act{Move pointer down the four theorems 3--6.}
+\begin{say}
+``Four theorems: Theorem 3, totality. Theorem 4, size of empty is zero. Theorem 5, the recurrence --- $\mathtt{size}\; (\mathrm{addfile}\; f\; d)$ equals $\mathtt{size}\; d$ plus one. And Theorem 6, non-negativity, which follows from the recurrence by structural induction. Both definitions are validated in the appendix.''
+\end{say}
+
+\transact{advance to the Explanation slide.}
 
 % ============================================================
-\slidehd{6}{Definition of \texttt{contains}}{$\sim$65 sec}
+\slidehd{6}{Explanation for Directory Development}{$\sim$50 sec}
 
-\onscreen{$\mathrm{contains}_{N \to D \to \mathbb{B}}$ as a definite description with two recursion clauses. Two theorems listed at the bottom.}
-
-\begin{say}
-``$\mathtt{contains}$ has type $N \to D \to \mathbb{B}$. It takes a name and a directory, and returns true if the directory has a file with that name, false otherwise.''
-\end{say}
+\onscreen{Plain-language prose summary of $\mathtt{contains}$ and $\mathtt{size}$. Two bullet blocks. Mentions appendix validation.}
 
 \begin{say}
-``We define it as the unique function $g$ of this type satisfying two recursion clauses.''
+``This slide restates the same two definitions in plain language for intuition.''
 \end{say}
-\act{Point to the first clause of the definite description.}
+
+\act{Point to the \texttt{Contains} block on the slide.}
 \begin{say}
-``First clause: for every name $n$, $g\; n\; \mathrm{emptydir}$ equals false --- the empty directory contains nothing.''
+``$\mathtt{contains}\; n\; d$ asks: is there a file named $n$ somewhere in directory $d$? The empty directory contains nothing; and $\mathrm{addfile}\; f\; d$ contains $n$ exactly when either $f$'s own name is $n$, or $d$ already contained $n$.''
 \end{say}
-\act{Point to the second clause.}
+
+\act{Point to the \texttt{Size} block.}
 \begin{say}
-``Second clause: for every name $n$, file $f$, and directory $d$, $g\; n\; (\mathrm{addfile}\; f\; d)$ equals true if $\mathrm{fname}\; f$ equals $n$, or if $g\; n\; d$ is true. In other words, $\mathrm{addfile}\; f\; d$ contains $n$ exactly when either $f$'s own name is $n$, or the tail $d$ already contains $n$.''
+``$\mathtt{size}\; d$ counts file entries: zero for $\mathrm{emptydir}$, and one more than $\mathtt{size}\; d$ whenever we prepend a file with $\mathrm{addfile}$.''
 \end{say}
 
 \pauseact
 
 \begin{say}
-``The validation in the appendix proves existence by structural induction --- the recursion is well-founded because the recursive call is on a strictly smaller directory. Uniqueness is also by structural induction on $D$.''
+``Both definitions are iota-terms --- definite descriptions. The appendix discharges existence and uniqueness for each, which is what makes them legal development-level abbreviations.''
 \end{say}
 
-\begin{say}
-``Once validated, we get two theorems for free ---''
-\end{say}
-\act{Point to the theorems at the bottom of the slide.}
-\begin{say}
-``--- $\mathtt{contains}$ is total, and $\mathtt{contains}\; n\; \mathrm{emptydir}$ is false for every $n$.''
-\end{say}
-
-\transact{advance to \texttt{size} definition slide.}
+\transact{advance to the concrete example slide.}
 
 % ============================================================
-\slidehd{7}{Definition of \texttt{size}}{$\sim$70 sec}
+\slidehd{7}{Example of Directory Evaluation}{$\sim$70 sec}
 
-\onscreen{$\mathrm{size}_{D \to \mathbb{N}}$ as a definite description with two recursion clauses. Four theorems listed below.}
+\onscreen{Two files $f_1, f_2$ built via $\mathrm{protect}(\mathrm{mkfile}\; n\; c)\; p$. Two-entry directory $d$. Values of $\mathtt{contains}$ at $n_1, n_2, n_3$ and $\mathtt{size}\; d = 2$.}
 
 \begin{say}
-``$\mathtt{size}$ has type $D \to \mathbb{N}$. It counts the number of files in a directory.''
+``To close out, a concrete evaluation.''
+\end{say}
+
+\act{Point to $f_1$ and $f_2$ definitions on the slide.}
+\begin{say}
+``Let $f_1$ be $\mathrm{protect}$ applied to $\mathrm{mkfile}\; n_1\; c_1$ with \textbf{read} permission. Let $f_2$ be $\mathrm{protect}$ applied to $\mathrm{mkfile}\; n_2\; c_2$ with \textbf{write} permission. Let $d$ be $\mathrm{addfile}\; f_1\; (\mathrm{addfile}\; f_2\; \mathrm{emptydir})$ --- a two-entry directory.''
+\end{say}
+
+\act{Point to each $\mathtt{contains}$ equation.}
+\begin{say}
+``$\mathtt{contains}\; n_1\; d$ is \textbf{true} --- $f_1$'s name matches at the outer layer. $\mathtt{contains}\; n_2\; d$ is also \textbf{true} --- we recurse into the tail and find $f_2$. $\mathtt{contains}\; n_3\; d$ is \textbf{false} --- no match at either layer.''
+\end{say}
+
+\act{Point to the $\mathtt{size}$ line.}
+\begin{say}
+``And $\mathtt{size}\; d$ equals \textbf{two} --- each $\mathrm{addfile}$ contributes one, $\mathrm{emptydir}$ contributes zero. So the two-entry directory has size two, confirming Theorem 5.''
 \end{say}
 
 \begin{say}
-``Again, we define it as the unique function $g$ satisfying two recursion clauses.''
-\end{say}
-\act{Point to the first clause.}
-\begin{say}
-``$g\; \mathrm{emptydir}$ equals zero.''
-\end{say}
-\act{Point to the second clause.}
-\begin{say}
-``And for every file $f$ and directory $d$, $g\; (\mathrm{addfile}\; f\; d)$ equals $g\; d$ plus one. So adding a file to a directory increases the size by exactly one.''
-\end{say}
-
-\begin{say}
-``Validation is the same pattern: existence by structural induction, uniqueness by structural induction.''
-\end{say}
-
-\pauseact
-
-\begin{say}
-``We prove four theorems about $\mathtt{size}$ ---''
-\end{say}
-\act{Point to each theorem in order as you list them.}
-\begin{say}
-``First, totality. Second, $\mathtt{size}\; \mathrm{emptydir}$ equals zero. Third, the recurrence: $\mathtt{size}\; (\mathrm{addfile}\; f\; d)$ equals $\mathtt{size}\; d$ plus one. And fourth, non-negativity: $\mathtt{size}\; d$ is at least zero for every $d$ --- this one is by structural induction using the recurrence.''
-\end{say}
-
-\begin{say}
-``That completes my sections of the development. Hamza will now take over with the theory morphism and the conclusion.''
+``That completes my sections of the development. Hamza will now take over with the theory morphism.''
 \end{say}
 
 \handoff{look to Hamza, step slightly aside, smile.}
-
-% ============================================================
-\clearpage
-\noindent\colorbox{slidebar}{\color{white}\parbox{\dimexpr\linewidth-2\fboxsep}{%
-  \vspace{0.2em}%
-  {\Large\bfseries CONTINGENCY $\cdot$ Example of Directory Evaluation}\\[0.2em]%
-  {\small only if I'm asked to present the Example slide instead of Hamza}%
-  \vspace{0.2em}%
-}}\par\vspace{0.8em}%
-
-\onscreen{Two files $f_1, f_2$ defined via $\mathrm{protect}$. Two-entry directory $d$. Values of $\mathtt{contains}$ and $\mathtt{size}$ at the bottom.}
-
-\begin{say}
-``A concrete example. Let $f_1$ and $f_2$ be two secured files ---''
-\end{say}
-\act{Point to $f_1$ and $f_2$ definitions on the slide.}
-\begin{say}
-``--- $f_1$ has name $n_1$, content $c_1$, and \textbf{read} permission; $f_2$ has name $n_2$, content $c_2$, and \textbf{write} permission. Let $d$ be the two-entry directory $\mathrm{addfile}\; f_1\; (\mathrm{addfile}\; f_2\; \mathrm{emptydir})$.''
-\end{say}
-
-\begin{say}
-``Unfolding $\mathtt{contains}$ ---''
-\end{say}
-\act{Point to each contains equation on the slide.}
-\begin{say}
-``--- $\mathtt{contains}\; n_1\; d$ is true because $f_1$'s name matches at the outer layer. $\mathtt{contains}\; n_2\; d$ is also true --- we recurse into the tail and find $f_2$. $\mathtt{contains}\; n_3\; d$ is false --- no match at either layer.''
-\end{say}
-
-\begin{say}
-``And unfolding $\mathtt{size}$: $\mathtt{size}\; d$ equals $\mathtt{size}$ of the one-entry tail plus one, which equals $\mathtt{size}$ of $\mathrm{emptydir}$ plus two, which is two. So this two-entry directory has size two, which confirms the theorems.''
-\end{say}
 
 % ============================================================
 \clearpage
